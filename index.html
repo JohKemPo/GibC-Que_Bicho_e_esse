@@ -1,431 +1,1199 @@
 <!DOCTYPE html>
-<html lang="pt">
-
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIB2C - Jogo de Bioinformática</title>
+    <title>BioINFO: Que bicho é esse?</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Inter for general text, Poppins for titles if desired -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght=600;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos personalizados */
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex-grow: 1;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent; /* For selected state */
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .card.selected {
+            border-color: #2196F3; /* A color to indicate selection */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+        }
+        .icon-circle {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+            color: white;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
 
-        .puzzle-piece {
-            transition: all 0.3s ease-in-out;
+        /* Specific colors for environment cards */
+        .card-marine .icon-circle { background-color: #90CAF9; } /* Light Blue */
+        .card-soil .icon-circle { background-color: #FFCC80; } /* Light Orange */
+        .card-cave .icon-circle { background-color: #A1887F; } /* Light Brown */
+        .card-forest .icon-circle { background-color: #A5D6A7; } /* Light Green */
+
+        /* Sequence puzzle specific styles */
+        .dna-block {
+            background-color: #E0E0E0;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
             cursor: grab;
+            margin: 0.25rem;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .dna-block:hover {
+            background-color: #D4D4D4;
+        }
+        .dna-block.correct {
+            background-color: #A5D6A7; /* Light green for correct */
+        }
+        .dna-block.incorrect {
+            background-color: #FFCDD2; /* Light red for incorrect */
+        }
+        .dna-target-area {
+            min-height: 80px;
+            border: 2px dashed #9E9E9E;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            background-color: #F0F0F0;
+        }
+        .terminal-box {
+            background-color: #2D2D2D;
+            color: #E0E0E0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .terminal-box .prompt {
+            color: #C5E1A5; /* Light green */
+        }
+        .terminal-box .output {
+            color: #90CAF9; /* Light blue */
+        }
+        .terminal-box .comment {
+            color: #BDBDBD; /* Grey */
         }
 
-        .puzzle-piece:active {
-            cursor: grabbing;
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 0.5rem;
+            height: 1.5rem;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 0.5rem;
+            transition: width 0.5s ease-out; /* Smooth transition for visual effect */
         }
 
-        .placeholder {
-            border: 2px dashed #cbd5e1;
-            background-color: #f8fafc;
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .icon-circle {
+                width: 3.5rem;
+                height: 3.5rem;
+                font-size: 1.75rem;
+            }
+            .container {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
+<body class="flex flex-col min-h-screen">
+    <!-- Main Header -->
+    <header class="bg-gray-800 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold font-poppins">BioINFO: Que bicho é esse?</h1>
+    </header>
 
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
+    <!-- Main Content Area -->
+    <main class="container flex-grow p-4 md:p-8 flex items-center justify-center">
 
-    <div id="game-container"
-        class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10 transition-all duration-500">
+        <!-- Screen: Home - Coleta -->
+        <div id="screen-home" class="screen flex flex-col items-center justify-center w-full">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Onde você encontrou seu bicho?</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Selecione o ambiente de onde sua amostra foi coletada para iniciarmos o processo de identificação.</p>
 
-        <!-- Ecrã Inicial (Coleta) -->
-        <div id="start-screen">
-            <header class="text-center mb-8">
-                <div class="inline-flex items-center gap-4">
-                    <svg class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-                    </svg>
-                    <h1 class="text-3xl font-bold text-gray-900">GIB2C - Bioinformática</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+                <div class="card card-marine" data-environment="marine">
+                    <div class="icon-circle bg-blue-300">🐟</div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Organismos marinhos</h3>
+                    <p class="text-gray-500 text-sm">Peixes, algas, crustáceos e outros seres que vivem em ambientes aquáticos.</p>
                 </div>
-                <p class="text-xl text-gray-600 mt-2">Que bicho é esse?</p>
-            </header>
-            <main class="text-center">
-                <h2 class="text-2xl font-semibold mb-6 text-gray-800">1. Coleta: Escolha um ambiente</h2>
-                <div id="environment-selection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Opções de ambiente serão inseridas aqui pelo JavaScript -->
+                <div class="card card-soil" data-environment="soil">
+                    <div class="icon-circle bg-orange-300">🌱</div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Organismos que vivem no solo</h3>
+                    <p class="text-gray-500 text-sm">Minhocas, insetos, fungos e outros seres que habitam o ambiente terrestre.</p>
                 </div>
-            </main>
+                <div class="card card-cave" data-environment="cave">
+                    <div class="icon-circle bg-stone-500">🦴</div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Seres cavernícolas e fósseis</h3>
+                    <p class="text-gray-500 text-sm">Organismos adaptados à vida em cavernas ou restos fossilizados.</p>
+                </div>
+                <div class="card card-forest" data-environment="forest">
+                    <div class="icon-circle bg-green-300">🌳</div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Organismos que vivem em florestas</h3>
+                    <p class="text-gray-500 text-sm">Mamíferos, aves, répteis e outros seres que habitam ambientes florestais.</p>
+                </div>
+            </div>
+            <!-- The 'Próximo passo' button is commented out as per new flow -->
+            <!-- <button id="btn-home-next" class="btn btn-primary mt-8 px-6 py-3 text-lg hidden">Próximo passo →</button> -->
         </div>
 
-        <!-- Ecrã do Quebra-cabeças (Montagem do Genoma) -->
-        <div id="puzzle-screen" class="hidden text-center">
-            <h2 class="text-2xl font-semibold mb-2 text-gray-800">2. Montagem do Genoma</h2>
-            <p class="text-gray-600 mb-6">Organize os fragmentos para montar a sequência de DNA.</p>
-            <div id="puzzle-container"
-                class="flex justify-center items-center gap-2 p-4 bg-gray-50 rounded-lg mb-6 min-h-[80px]">
-                <!-- Peças do quebra-cabeças aqui -->
+        <!-- Screen: Scan QR -->
+        <div id="screen-scan-qr" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Hora de sortear seu bicho!</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Vá até a caixa física do ambiente que você selecionou e retire um cartão. Em seguida, escaneie o QR Code!</p>
+            <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code text-gray-500 mb-6"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 3v10a2 2 0 0 1-2 2H3"/><path d="M15 7h1"/></svg>
+                <p class="text-lg text-gray-700">Aguardando escaneamento do QR Code...</p>
+                <p class="text-sm text-gray-500 mt-2">A sequência será carregada automaticamente via URL.</p>
             </div>
-            <div id="puzzle-slots"
-                class="flex justify-center items-center gap-2 p-4 bg-gray-200 rounded-lg min-h-[80px]">
-                <!-- Espaços para encaixar as peças aqui -->
-            </div>
-            <button id="check-puzzle-btn"
-                class="mt-8 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400">Verificar
-                Sequência</button>
+            <p class="text-gray-500 text-xs mt-6 text-center max-w-md">Exemplo de URL do QR Code: `https://[seu-usuario].github.io/[seu-repo]/?seq=AACGTCATCCGG`</p>
         </div>
 
-        <!-- Ecrã de Consulta (Banco de Dados) -->
-        <div id="query-screen" class="hidden text-center">
-            <h2 class="text-2xl font-semibold mb-6 text-gray-800">3. Consulta ao Banco de Dados</h2>
-            <p class="text-gray-600 mb-6">A sequência montada foi: <strong id="assembled-sequence"
-                    class="font-mono text-indigo-600"></strong></p>
-            <div class="flex flex-col items-center">
-                <input type="text" id="sequence-input"
-                    class="w-full max-w-md text-center font-mono text-lg p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    readonly>
-                <button id="search-db-btn"
-                    class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Consultar</button>
+        <!-- Screen: Sequence Display (Temporary) -->
+        <div id="screen-sequence-display" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Sua Sequência!</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Observe e tente memorizar a sequência para o próximo passo!</p>
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl flex flex-col items-center">
+                <div class="terminal-box w-full mb-6">
+                    <span class="prompt">$ sequencia_dna.txt</span>
+                    <br>
+                    <span id="display-sequence" class="output text-xl md:text-2xl font-bold tracking-wide"></span>
+                </div>
+                <div class="progress-bar-container w-full">
+                    <div id="sequence-display-progress" class="progress-bar-fill"></div>
+                </div>
+                <p id="sequence-display-timer-text" class="text-gray-600 mt-4">Tempo restante: 5 segundos</p>
             </div>
         </div>
 
-        <!-- Ecrã de Identificação (Alinhamento) -->
-        <div id="identification-screen" class="hidden">
-            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">4. Alinhamento e Identificação</h2>
-            <div id="phylogenetic-tree" class="flex justify-center">
-                <!-- Árvore filogenética será gerada aqui -->
+        <!-- Screen: Sequencing the DNA (Loading) -->
+        <div id="screen-sequencing" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Sequenciando o DNA</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Nosso sequenciador está lendo o código genético do seu organismo.</p>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl flex flex-col md:flex-row items-center md:justify-around">
+                <img src="https://placehold.co/200x200/F5F5DC/000000?text=Ovelha" alt="Ovelha" class="w-48 h-48 object-contain mr-0 md:mr-8 mb-6 md:mb-0 rounded-lg">
+                <div class="flex flex-col items-center w-full md:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone text-gray-400 mb-6"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                    <p class="text-lg text-gray-700 mb-4 text-center">O sequenciador está coletando informações genéticas do seu organismo...</p>
+                    <div class="progress-bar-container w-full md:w-80">
+                        <div id="sequencing-progress" class="progress-bar-fill"></div>
+                    </div>
+                </div>
             </div>
-            <p id="identification-result" class="text-center mt-6 text-lg font-medium"></p>
+            <button id="btn-sequencing-next" class="btn btn-primary mt-8 px-6 py-3 text-lg hidden">Ver sequência →</button>
         </div>
 
-        <!-- Ecrã Final (Ficha do Organismo) -->
-        <div id="organism-file-screen" class="hidden">
-            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">5. Ficha do Organismo</h2>
-            <div id="organism-card" class="bg-gray-50 rounded-lg p-8 text-center flex flex-col items-center">
-                <!-- Informações do organismo aqui -->
+        <!-- Screen: Genome Assembly (Puzzle) -->
+        <div id="screen-genome-assembly" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Montando o Genoma</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">O código genético do seu organismo foi revelado! Arraste os blocos na ordem correta para montar a sequência.</p>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl flex flex-col items-center">
+                <div class="terminal-box w-full mb-6">
+                    <span class="prompt">$ sequencia_dna.txt</span>
+                    <br>
+                    <span id="original-sequence-display" class="output text-xl md:text-2xl font-bold tracking-wide"></span>
+                    <br>
+                    <span class="prompt">$ iniciando_montagem_genoma...</span>
+                </div>
+
+                <div class="w-full mb-6 p-4 border-2 border-dashed border-gray-400 rounded-xl bg-gray-50">
+                    <p class="text-gray-700 font-semibold mb-2 text-center">Arraste os blocos aqui:</p>
+                    <div id="dna-target-area" class="dna-target-area w-full flex flex-wrap justify-center items-center p-2 bg-white rounded-lg min-h-[100px]">
+                        <!-- Dragged DNA blocks will appear here -->
+                    </div>
+                </div>
+
+                <div id="dna-blocks-source" class="flex flex-wrap justify-center gap-2 mb-6 p-4 bg-gray-100 rounded-xl w-full">
+                    <!-- Shuffled DNA blocks will be injected here by JS -->
+                </div>
+
+                <button id="btn-check-assembly" class="btn btn-primary mt-4 px-6 py-3 text-lg">Verificar Montagem</button>
+                <p id="assembly-message" class="text-center mt-4 font-semibold"></p>
+
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mt-6 w-full" role="alert">
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V7a1 1 0 10-2 0v-1zm1 4a1 1 0 100 2h.01a1 1 0 100-2H10z" clip-rule="evenodd"></path>
+                        </svg>
+                        <p class="font-bold">Curiosidade genética</p>
+                    </div>
+                    <p class="text-sm mt-2">Cada organismo possui uma sequência única de DNA que funciona como sua "impressão digital" genética.</p>
+                </div>
             </div>
-            <div class="text-center mt-8">
-                <button id="play-again-btn"
-                    class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Jogar
-                    Novamente</button>
+            <button id="btn-assembly-next" class="btn btn-primary mt-8 px-6 py-3 text-lg hidden">Consultar banco de dados →</button>
+        </div>
+
+        <!-- Screen: Database Query -->
+        <div id="screen-database-query" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Consulta ao Banco de Dados</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Hora de descobrir quem é seu bicho!</p>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl flex flex-col items-center">
+                <div class="w-full mb-6">
+                    <label for="dna-sequence-input" class="block text-gray-700 font-semibold mb-2">
+                        <span class="inline-flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database text-gray-500 mr-2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 12a9 3 0 0 0 18 0"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/></svg>
+                            Banco de Dados Genômico
+                        </span>
+                    </label>
+                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                        <input type="text" id="dna-sequence-input" class="flex-grow p-3 focus:outline-none text-gray-700 text-lg" placeholder="Digite ou cole a sequência de DNA:" readonly>
+                        <button id="btn-search-db" class="bg-green-500 text-white p-3 h-full flex items-center justify-center hover:bg-green-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <span class="ml-2 hidden sm:inline">Buscar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="db-processing-area" class="w-full min-h-[150px] bg-gray-50 rounded-xl p-6 flex flex-col items-center justify-center text-center text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database text-gray-400 mb-4"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 12a9 3 0 0 0 18 0"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/></svg>
+                    <p id="db-status-text" class="text-lg">Aguardando entrada de sequência para iniciar a busca...</p>
+                    <p class="text-sm mt-2">O sistema irá comparar sua sequência com milhares de registros em nosso banco de dados.</p>
+                </div>
+            </div>
+            <button id="btn-db-next" class="btn btn-primary mt-8 px-6 py-3 text-lg hidden">Iniciar alinhamento →</button>
+        </div>
+
+        <!-- Screen: Genetic Alignment -->
+        <div id="screen-genetic-alignment" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Alinhamento Genético</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Veja a relação de parentesco da sua amostra com outras espécies!</p>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl flex flex-col items-center">
+                <div id="alignment-visualization" class="w-full space-y-4">
+                    <!-- Dynamic alignment bars will be inserted here -->
+                </div>
+                <p id="alignment-summary" class="text-lg text-gray-700 mt-8 text-center"></p>
+            </div>
+            <button id="btn-alignment-next" class="btn btn-primary mt-8 px-6 py-3 text-lg">Ver Ficha Completa →</button>
+        </div>
+
+        <!-- Screen: Identification Card -->
+        <div id="screen-identification-card" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Ficha de Identificação</h2>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">Bicho identificado! Conheça mais sobre este organismo.</p>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <h3 id="card-animal-name" class="text-2xl font-bold text-white bg-blue-500 p-3 rounded-t-lg rounded-b-md mb-4"></h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg">
+                            <img id="card-animal-image" src="" alt="Animal Image" class="w-full h-auto max-h-64 object-contain rounded-lg">
+                        </div>
+                        <div class="text-gray-700">
+                            <h4 class="font-bold text-lg mb-2">Descrição</h4>
+                            <p id="card-description" class="mb-4 text-sm"></p>
+                            <h4 class="font-bold text-lg mb-2">Habitat e distribuição</h4>
+                            <p id="card-habitat" class="mb-4 text-sm"></p>
+                        </div>
+                    </div>
+                    <div class="text-gray-700 mt-6">
+                        <h4 class="font-bold text-lg mb-2">Características genéticas</h4>
+                        <p id="card-genetic-features" class="mb-4 text-sm"></p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1">
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-bold text-lg mb-2">Classificação taxonômica:</h4>
+                        <ul class="text-gray-700 text-sm list-none p-0">
+                            <li><strong class="text-gray-600">Reino:</strong> <span id="card-taxonomy-kingdom"></span></li>
+                            <li><strong class="text-gray-600">Filo:</strong> <span id="card-taxonomy-phylum"></span></li>
+                            <li><strong class="text-gray-600">Classe:</strong> <span id="card-taxonomy-class"></span></li>
+                            <li><strong class="text-gray-600">Ordem:</strong> <span id="card-taxonomy-order"></span></li>
+                            <li><strong class="text-gray-600">Família:</strong> <span id="card-taxonomy-family"></span></li>
+                            <li><strong class="text-gray-600">Gênero:</strong> <span id="card-taxonomy-genus"></span></li>
+                            <li><strong class="text-gray-600">Espécie:</strong> <span id="card-taxonomy-species"></span></li>
+                        </ul>
+                    </div>
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md" role="alert">
+                        <div class="flex items-center mb-2">
+                            <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V7a1 1 0 10-2 0v-1zm1 4a1 1 0 100 2h.01a1 1 0 100-2H10z" clip-rule="evenodd"></path>
+                            </svg>
+                            <p class="font-bold">Curiosidade</p>
+                        </div>
+                        <p id="card-curiosity" class="text-sm"></p>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-identify-another" class="btn btn-primary mt-8 px-6 py-3 text-lg">Identificar outro bicho <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-redo2 inline-block ml-2"><path d="M9 14.24V19H4.76a2 2 0 0 1-1.89-2.66l2.32-8.63A2 2 0 0 1 7.22 5h9.56a2 2 0 0 1 1.89 2.66l2.32 8.63A2 2 0 0 1 19.24 19H14v-4.76"/></svg></button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-6 mt-auto">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left text-sm">
+            <div class="mb-4 md:mb-0">
+                <h3 class="text-xl font-bold font-poppins mb-1">BIOINFO.</h3>
+                <p>Ferramenta educacional para identificação de espécies</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 md:gap-8">
+                <div>
+                    <h4 class="font-bold mb-2">Recursos</h4>
+                    <ul>
+                        <li><a href="#" class="hover:text-gray-300">Tutoriais</a></li>
+                        <li><a href="#" class="hover:text-gray-300">Banco de dados</a></li>
+                        <li><a href="#" class="hover:text-gray-300">Glossário</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-2">Sobre</h4>
+                    <ul>
+                        <li><a href="#" class="hover:text-gray-300">Equipe</a></li>
+                        <li><a href="#" class="hover:text-gray-300">Contato</a></li>
+                        <li><a href="#" class="hover:text-gray-300">Política de privacidade</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
+        <div class="mt-6 text-center text-xs text-gray-500">
+            <p>&copy; 2023 BIOINFO - Todos os direitos reservados. Ferramenta desenvolvida para fins educacionais.</p>
+        </div>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Data for species - simplified for demonstration
+        const speciesData = {
+            "ambienteMarinho": [
+                {
+                    id: "peixe1", sequence: "AACGTCATCCGG", name: "Peixe-palhaço (Nemo)", scientificName: "Amphiprion ocellaris",
+                    description: "Um peixe marinho vibrante conhecido por sua relação simbiótica com anémonas. Possui cores fortes de laranja, branco e preto.",
+                    habitat: "Encontrado em recifes de coral no Oceano Pacífico e Índico, em águas rasas e protegidas.",
+                    geneticFeatures: "Possui um genoma relativamente pequeno e é um modelo de estudo para adaptação a ambientes estressantes.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Actinopterygii", order: "Perciformes", family: "Pomacentridae", genus: "Amphiprion", species: "A. ocellaris" },
+                    curiosity: "Todos nascem machos, mas o maior macho do grupo pode mudar para fêmea se a fêmea dominante morrer.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Peixe+Palhaço"
+                },
+                {
+                    id: "tubarao1", sequence: "GGCTAGCTAGTC", name: "Tubarão-martelo", scientificName: "Sphyrna mokarran",
+                    description: "Um predador marinho com uma cabeça distintiva em forma de T, que melhora sua visão e detecção de presas.",
+                    habitat: "Encontrado em águas costeiras e oceânicas tropicais e temperadas em todo o mundo.",
+                    geneticFeatures: "Seu genoma apresenta adaptações para a vida em oceano aberto e para a caça de grandes presas.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Chondrichthyes", order: "Carcharhiniformes", family: "Sphyrnidae", genus: "Sphyrna", species: "S. mokarran" },
+                    curiosity: "Sua cabeça em forma de martelo pode ajudá-lo a 'prender' raias no fundo do oceano antes de atacá-las.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Tubarao+Martelo"
+                },
+                {
+                    id: "baleia1", sequence: "ATCGATCGATCG", name: "Baleia-azul", scientificName: "Balaenoptera musculus",
+                    description: "O maior animal do planeta, conhecido por seu tamanho colossal e sua dieta baseada em krill.",
+                    habitat: "Habita todos os oceanos do mundo, migrando entre águas quentes e frias.",
+                    geneticFeatures: "Seu genoma contém informações cruciais sobre seu gigantismo e adaptações ao ambiente marinho profundo.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Cetacea", family: "Balaenopteridae", genus: "Balaenoptera", species: "B. musculus" },
+                    curiosity: "Sua língua sozinha pode pesar tanto quanto um elefante, e seu coração é do tamanho de um carro.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Baleia+Azul"
+                },
+                {
+                    id: "estrela1", sequence: "AGTCAGTCAGTC", name: "Estrela-do-mar", scientificName: "Asterias rubens",
+                    description: "Um equinodermo marinho com simetria radial, capaz de regenerar membros perdidos.",
+                    habitat: "Encontrada em leitos marinhos rochosos e arenosos, desde a zona entremarés até profundidades consideráveis.",
+                    geneticFeatures: "Seu genoma revela a base genética de sua impressionante capacidade de regeneração e desenvolvimento.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Echinodermata", class: "Asteroidea", order: "Forcipulatida", family: "Asteriidae", genus: "Asterias", species: "A. rubens" },
+                    curiosity: "Não são peixes, apesar do nome, e movem-se usando milhares de pequenos pés tubulares em seus braços.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Estrela+do+Mar"
+                },
+                {
+                    id: "polvo1", sequence: "GCTAGCTAGGCA", name: "Polvo-comum", scientificName: "Octopus vulgaris",
+                    description: "Um molusco cefalópode altamente inteligente, conhecido por sua camuflagem e capacidade de resolver problemas.",
+                    habitat: "Habita águas costeiras e subtropicais ao redor do mundo, em fundos rochosos e recifes.",
+                    geneticFeatures: "Possui um genoma complexo que contribui para sua inteligência, camuflagem e sistema nervoso avançado.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Mollusca", class: "Cephalopoda", order: "Octopoda", family: "Octopodidae", genus: "Octopus", species: "O. vulgaris" },
+                    curiosity: "Têm três corações: dois bombeiam sangue para as brânquias, e um terceiro circula o sangue para o resto do corpo.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Polvo"
+                },
+                {
+                    id: "cavalomarinho1", sequence: "TAGCTAGTAGTA", name: "Cavalo-marinho", scientificName: "Hippocampus hippocampus",
+                    description: "Um peixe com uma forma corporal única e o macho incuba os ovos em uma bolsa especializada.",
+                    habitat: "Encontrado em águas tropicais e temperadas, em leitos de ervas marinhas e recifes de coral.",
+                    geneticFeatures: "Seu genoma oferece insights sobre a inversão de papéis parentais e sua morfologia incomum.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Actinopterygii", order: "Syngnathiformes", family: "Syngnathidae", genus: "Hippocampus", species: "H. hippocampus" },
+                    curiosity: "São os únicos peixes onde o macho carrega os ovos, e podem mudar de cor para camuflagem.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Cavalo+Marinho"
+                },
+                {
+                    id: "medusa1", sequence: "CGTAGCGTAGGC", name: "Medusa-da-lua", scientificName: "Aurelia aurita",
+                    description: "Uma espécie de medusa com um corpo em forma de sino e quatro gônadas em forma de ferradura visíveis através de seu corpo translúcido.",
+                    habitat: "Comum em águas costeiras temperadas e tropicais de todo o mundo.",
+                    geneticFeatures: "Seu genoma simples, mas adaptável, permite-lhe prosperar em diferentes condições oceânicas.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Cnidaria", class: "Scyphozoa", order: "Semaeostomeae", family: "Ulmaridae", genus: "Aurelia", species: "A. aurita" },
+                    curiosity: "Não têm cérebro, coração, ossos ou olhos, mas possuem uma rede nervosa primitiva.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Medusa"
+                },
+                {
+                    id: "golfinho1", sequence: "TCGATCGATTCG", name: "Golfinho-nariz-de-garrafa", scientificName: "Tursiops truncatus",
+                    description: "Um mamífero marinho altamente inteligente e social, conhecido por sua ecolocalização e saltos acrobáticos.",
+                    habitat: "Habita águas temperadas e tropicais em todo o mundo, tanto em zonas costeiras quanto em mar aberto.",
+                    geneticFeatures: "Seu genoma complexo é estudado por sua inteligência, comunicação e adaptação à vida aquática.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Cetacea", family: "Delphinidae", genus: "Tursiops", species: "T. truncatus" },
+                    curiosity: "São capazes de usar ferramentas e têm culturas regionais, transmitindo conhecimentos entre gerações.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Golfinho"
+                },
+                {
+                    id: "tartarugamarinha1", sequence: "GATCGATCGATC", name: "Tartaruga-marinha-verde", scientificName: "Chelonia mydas",
+                    description: "Uma grande tartaruga marinha herbívora, nomeada pela cor de sua gordura, e não de sua carapaça.",
+                    habitat: "Encontrada em águas tropicais e subtropicais ao redor do mundo, alimentando-se em leitos de ervas marinhas e algas.",
+                    geneticFeatures: "Seu genoma reflete sua longevidade, migrações épicas e adaptações a uma dieta herbívora marinha.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Reptilia", order: "Testudines", family: "Cheloniidae", genus: "Chelonia", species: "C. mydas" },
+                    curiosity: "Pode prender a respiração por horas submersa, e as fêmeas retornam à mesma praia onde nasceram para botar ovos.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Tartaruga+Marinha"
+                },
+                {
+                    id: "coralarvore1", sequence: "ACTGACTGACTG", name: "Coral-cérebro", scientificName: "Diploria labyrinthiformis",
+                    description: "Um tipo de coral que forma colônias em formato de cérebro, com sulcos e cristas que se assemelham aos giros de um cérebro.",
+                    habitat: "Cresce em recifes de coral em águas quentes e rasas do Atlântico, Caribe e Golfo do México.",
+                    geneticFeatures: "Seu genoma revela a complexidade da formação de recifes e a simbiose com algas que o alimentam.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Cnidaria", class: "Anthozoa", order: "Scleractinia", family: "Mussidae", genus: "Diploria", species: "D. labyrinthiformis" },
+                    curiosity: "São essenciais para a formação de recifes de coral, fornecendo abrigo e alimento para inúmeras espécies marinhas.",
+                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Coral+Cerebro"
+                }
+            ],
+            "ambienteSolo": [
+                {
+                    id: "ovelha1", sequence: "AACGTCATCCGGTACTGGTCATAGCAATGCTAGGC", name: "Ovelha doméstica", scientificName: "Ovis aries",
+                    description: "A ovelha doméstica (Ovis aries) é um mamífero ruminante herbívoro, que foi domesticado há aproximadamente 10.000 anos. É um animal de médio porte, coberto por uma espessa camada de lã que serve como isolante térmico. Elas são criadas principalmente por sua lã, carne e leite.",
+                    habitat: "Originalmente nativas da Ásia e Europa, as ovelhas foram introduzidas em todos os continentes, exceto a Antártida. Adaptam-se bem a diversos ambientes, desde planícies até regiões montanhosas, mas preferem pastagens abertas.",
+                    geneticFeatures: "O genoma da ovelha doméstica contém 27 pares de cromossomos. Seu DNA possui sequências específicas que a distinguem de outros animais, mesmo daqueles evolutivamente próximos, como cabras e bovinos. A análise genética ajuda a entender suas características de produção e resistência a doenças.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Artiodactyla", family: "Bovidae", genus: "Ovis", species: "O. aries" },
+                    curiosity: "As ovelhas têm uma visão periférica de aproximadamente 270 a 320 graus, permitindo que vejam atrás de si sem virar a cabeça! Além disso, possuem um estômago dividido em quatro compartimentos que lhes permite digerir alimentos que outros animais não conseguem.",
+                    image: "https://placehold.co/200x200/F5F5DC/000000?text=Ovelha"
+                },
+                {
+                    id: "minhoca1", sequence: "CCTGATGCCTAG", name: "Minhoca-da-terra", scientificName: "Lumbricus terrestris",
+                    description: "Um invertebrado segmentado que vive no solo, essencial para a saúde do ecossistema.",
+                    habitat: "Solos úmidos e ricos em matéria orgânica em todo o mundo.",
+                    geneticFeatures: "Genoma simples, mas adaptado para a vida subterrânea e decomposição.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Annelida", class: "Clitellata", order: "Crassiclitellata", family: "Lumbricidae", genus: "Lumbricus", species: "L. terrestris" },
+                    curiosity: "Não têm olhos, mas podem sentir a luz e as vibrações. São hermafroditas, possuindo órgãos reprodutores masculinos e femininos.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Minhoca"
+                },
+                {
+                    id: "besouro1", sequence: "AAGCTGCTAGGT", name: "Besouro-rinoceronte", scientificName: "Dynastes hercules",
+                    description: "Um dos maiores besouros do mundo, famoso por seu grande chifre. Os machos usam seus chifres em batalhas por fêmeas.",
+                    habitat: "Florestas tropicais da América Central e do Sul, vivendo na madeira em decomposição.",
+                    geneticFeatures: "Seu genoma possui genes que controlam o desenvolvimento de seus chifres impressionantes.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Insecta", order: "Coleoptera", family: "Scarabaeidae", genus: "Dynastes", species: "D. hercules" },
+                    curiosity: "Pode levantar até 850 vezes seu próprio peso, tornando-o um dos animais mais fortes do planeta em relação ao seu tamanho.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Besouro"
+                },
+                {
+                    id: "formiga1", sequence: "GATTACAACAAC", name: "Formiga-cortadeira", scientificName: "Atta cephalotes",
+                    description: "Uma formiga social que 'cultiva' fungos para se alimentar, cortando folhas para fertilizá-los.",
+                    habitat: "Florestas tropicais e subtropicais das Américas.",
+                    geneticFeatures: "Genoma complexo que reflete sua organização social avançada e seu mutualismo com fungos.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Insecta", order: "Hymenoptera", family: "Formicidae", genus: "Atta", species: "A. cephalotes" },
+                    curiosity: "São agricultoras sofisticadas, usando folhas para cultivar seus próprios 'jardins' de fungos dentro do formigueiro.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Formiga"
+                },
+                {
+                    id: "fungo1", sequence: "TTGGCGTACGTA", name: "Cogumelo-da-morte", scientificName: "Amanita phalloides",
+                    description: "Um fungo altamente tóxico, responsável pela maioria das fatalidades por envenenamento por cogumelos.",
+                    habitat: "Cresce em florestas, em simbiose com raízes de árvores como carvalhos e pinheiros.",
+                    geneticFeatures: "Seu genoma contém os genes responsáveis pela produção de suas potentes toxinas.",
+                    taxonomy: { kingdom: "Fungi", phylum: "Basidiomycota", class: "Agaricomycetes", order: "Agaricales", family: "Amanitaceae", genus: "Amanita", species: "A. phalloides" },
+                    curiosity: "Apesar de seu nome, tem um sabor agradável, o que o torna ainda mais perigoso, pois as vítimas não percebem o perigo até que seja tarde demais.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Cogumelo"
+                },
+                {
+                    id: "rato1", sequence: "CGTAGCGTAAGG", name: "Rato-doméstico", scientificName: "Mus musculus",
+                    description: "Um pequeno mamífero roedor, adaptável e amplamente distribuído, muitas vezes encontrado em ambientes humanos.",
+                    habitat: "Ambientes variados, incluindo casas, fazendas e campos, adaptando-se facilmente à presença humana.",
+                    geneticFeatures: "É um dos animais mais estudados geneticamente, sendo um modelo para a pesquisa biomédica devido à sua similaridade genética com humanos.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Rodentia", family: "Muridae", genus: "Mus", species: "M. musculus" },
+                    curiosity: "Seu genoma é incrivelmente similar ao humano, e eles são usados em pesquisas para entender doenças e desenvolver tratamentos.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Rato"
+                },
+                {
+                    id: "cobra1", sequence: "TGCAGTCAGACT", name: "Cobra-cornuda", scientificName: "Vipera ammodytes",
+                    description: "Uma víbora venenosa encontrada na Europa, caracterizada por uma proeminência macia e escamosa no focinho.",
+                    habitat: "Vive em áreas rochosas, ensolaradas, encostas e matagais da Europa Central e Sudeste.",
+                    geneticFeatures: "Seu genoma contém informações sobre a produção de seu veneno e sua adaptação a climas temperados.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Reptilia", order: "Squamata", family: "Viperidae", genus: "Vipera", species: "V. ammodytes" },
+                    curiosity: "É considerada a víbora mais perigosa da Europa devido ao seu veneno potente e seu habitat próximo a áreas humanas.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Cobra"
+                },
+                {
+                    id: "lesma1", sequence: "GTTCAGTTGACA", name: "Lesma-cinzenta", scientificName: "Deroceras reticulatum",
+                    description: "Um molusco gastrópode terrestre, sem concha, conhecido por sua baba e hábito de se alimentar de plantas.",
+                    habitat: "Jardins, campos e áreas úmidas e vegetadas em muitas partes do mundo.",
+                    geneticFeatures: "Genoma que revela adaptações para a vida terrestre sem concha e a produção de muco para locomoção e proteção.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Mollusca", class: "Gastropoda", order: "Stylommatophora", family: "Agriolimacidae", genus: "Deroceras", species: "D. reticulatum" },
+                    curiosity: "A baba de lesma é usada em algumas culturas como remédio tradicional e para hidratação da pele.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Lesma"
+                },
+                {
+                    id: "aranha1", sequence: "CACGTAGTGGTA", name: "Aranha-teia-de-funil", scientificName: "Atrax robustus",
+                    description: "Uma aranha altamente venenosa nativa da Austrália, conhecida por seu habitat em forma de funil.",
+                    habitat: "Regiões costeiras e montanhosas do leste da Austrália, construindo teias em tocas e buracos.",
+                    geneticFeatures: "Seu genoma contém os genes responsáveis pela produção de suas neurotoxinas potentes.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Arachnida", order: "Araneae", family: "Atracidae", genus: "Atrax", species: "A. robustus" },
+                    curiosity: "É uma das aranhas mais perigosas do mundo, mas um antiveneno eficaz foi desenvolvido na Austrália.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Aranha"
+                },
+                {
+                    id: "coelho1", sequence: "GGCTAGCTATAG", name: "Coelho-europeu", scientificName: "Oryctolagus cuniculus",
+                    description: "Um pequeno mamífero herbívoro, social e prolífico, que vive em tocas subterrâneas.",
+                    habitat: "Campos abertos, florestas com clareiras e áreas agrícolas em muitas partes do mundo.",
+                    geneticFeatures: "Seu genoma é estudado para entender sua adaptabilidade, reprodução rápida e resistência a doenças.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Lagomorpha", family: "Leporidae", genus: "Oryctolagus", species: "O. cuniculus" },
+                    curiosity: "Ao contrário dos roedores, os coelhos têm um segundo par de incisivos menores atrás dos dentes da frente superiores.",
+                    image: "https://placehold.co/200x200/FFCC80/000000?text=Coelho"
+                }
+            ],
+            "ambienteCavernaFossil": [
+                {
+                    id: "morcego1", sequence: "CCTAGGTACGTA", name: "Morcego-cavernícola", scientificName: "Myotis lucifugus",
+                    description: "Um pequeno morcego que se abriga em cavernas durante o dia e emerge à noite para caçar insetos.",
+                    habitat: "Cavernas, minas e estruturas escuras em florestas e áreas rurais.",
+                    geneticFeatures: "Genoma adaptado para a ecolocalização e vida em ambientes escuros.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Chiroptera", family: "Vespertilionidae", genus: "Myotis", species: "M. lucifugus" },
+                    curiosity: "Pode comer centenas de insetos em uma única noite, sendo um importante controlador de pragas.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Morcego"
+                },
+                {
+                    id: "olmcave1", sequence: "GGCCTTAAGGTC", name: "Olm", scientificName: "Proteus anguinus",
+                    description: "Um anfíbio aquático cego e com brânquias externas, perfeitamente adaptado à vida em cavernas escuras.",
+                    habitat: "Sistema de cavernas cársticas na Europa Central e Sudeste.",
+                    geneticFeatures: "Genoma com adaptações para cegueira, longevidade e metabolismo lento em ambientes de baixa energia.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Amphibia", order: "Caudata", family: "Proteidae", genus: "Proteus", species: "P. anguinus" },
+                    curiosity: "Pode viver até 100 anos e sobreviver por uma década sem comida, devido ao seu metabolismo extremamente lento.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Olm"
+                },
+                {
+                    id: "peixecaverna1", sequence: "TAGCTAGCAGTA", name: "Peixe-cego-de-caverna", scientificName: "Astyanax mexicanus",
+                    description: "Uma subespécie de peixe de água doce que vive em cavernas, tendo perdido seus olhos e pigmentação ao longo da evolução.",
+                    habitat: "Rios e piscinas subterrâneas em sistemas de cavernas no México e nos EUA.",
+                    geneticFeatures: "Seu genoma apresenta mutações que levaram à perda de visão e pigmentação em ambientes escuros.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Actinopterygii", order: "Characiformes", family: "Characidae", genus: "Astyanax", species: "A. mexicanus" },
+                    curiosity: "Embora cegos, compensam com sentidos aguçados de tato e olfato para navegar em seus ambientes escuros.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Peixe+Caverna"
+                },
+                {
+                    id: "aranhacaverna1", sequence: "ACGTACGTAGAT", name: "Aranha-de-caverna", scientificName: "Meta menardi",
+                    description: "Uma aranha grande e escura que vive em ambientes úmidos e escuros, como cavernas e túneis.",
+                    habitat: "Cavernas, minas e outras formações subterrâneas na Europa e América do Norte.",
+                    geneticFeatures: "Genoma com adaptações para a visão reduzida e maior sensibilidade a vibrações.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Arachnida", order: "Araneae", family: "Tetragnathidae", genus: "Meta", species: "M. menardi" },
+                    curiosity: "Seus olhos são pequenos e pouco desenvolvidos, mas suas pernas longas e sensíveis a ajudam a detectar presas no escuro total.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Aranha+Caverna"
+                },
+                {
+                    id: "griloCaverna1", sequence: "GCATGCATGCAT", name: "Grilo-de-caverna", scientificName: "Ceuthophilus stygius",
+                    description: "Um grilo sem asas e de pernas longas, perfeitamente adaptado à vida em cavernas e fendas.",
+                    habitat: "Cavernas e habitats subterrâneos em regiões temperadas.",
+                    geneticFeatures: "Genoma com adaptações para sobreviver em ambientes com pouca comida e sem luz.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Insecta", order: "Orthoptera", family: "Rhaphidophoridae", genus: "Ceuthophilus", species: "C. stygius" },
+                    curiosity: "São conhecidos por sua capacidade de saltar longas distâncias, mesmo no escuro, para escapar de predadores.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Grilo+Caverna"
+                },
+                {
+                    id: "estegossauro1", sequence: "TAGCTAGCTATC", name: "Estegossauro (Fóssil)", scientificName: "Stegosaurus stenops",
+                    description: "Um dinossauro herbívoro do período Jurássico, famoso por suas grandes placas ósseas nas costas e espinhos na cauda.",
+                    habitat: "Florestas e planícies na América do Norte.",
+                    geneticFeatures: "Seu genoma (hipotético) conteria as instruções para suas estruturas ósseas defensivas e tamanho massivo.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Reptilia", order: "Ornithischia", family: "Stegosauridae", genus: "Stegosaurus", species: "S. stenops" },
+                    curiosity: "Apesar de seu corpo maciço, seu cérebro era do tamanho de uma noz, o menor em proporção ao corpo entre os dinossauros.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Estegossauro"
+                },
+                {
+                    id: "mamute1", sequence: "CCTAGGCTAGTC", name: "Mamute-lanoso (Fóssil)", scientificName: "Mammuthus primigenius",
+                    description: "Um elefante extinto da Idade do Gelo, coberto por uma espessa pelagem para se proteger do frio.",
+                    habitat: "Estepes frias e tundras do Hemisfério Norte.",
+                    geneticFeatures: "Estudos de seu DNA recuperado de fósseis revelam adaptações ao frio extremo e sua dieta de gramíneas.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Proboscidea", family: "Elephantidae", genus: "Mammuthus", species: "M. primigenius" },
+                    curiosity: "Os cientistas estão explorando a possibilidade de 'reviver' o mamute lanoso usando DNA antigo e técnicas de clonagem.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Mamute"
+                },
+                {
+                    id: "ammonite1", sequence: "AGTCGATCGGTC", name: "Amonite (Fóssil)", scientificName: "Ammonoidea",
+                    description: "Um grupo extinto de moluscos cefalópodes marinhos com conchas espirais, parentes dos polvos e lulas atuais.",
+                    habitat: "Oceanos pré-históricos em todo o mundo.",
+                    geneticFeatures: "Fósseis indicam uma grande diversidade de formas de concha, refletindo seu sucesso evolutivo.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Mollusca", class: "Cephalopoda", order: "Ammonoidea", family: "N/A", genus: "N/A", species: "N/A" },
+                    curiosity: "São excelentes fósseis-guia, o que significa que sua presença em rochas ajuda a datar a idade dessas rochas.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Amonite"
+                },
+                {
+                    id: "trilobite1", sequence: "GATCGACTGACT", name: "Trilobite (Fóssil)", scientificName: "Trilobita",
+                    description: "Um grupo extinto de artrópodes marinhos, conhecidos por seus corpos segmentados divididos em três lóbulos.",
+                    habitat: "Fundos oceânicos de todo o mundo, desde o Cambriano até o Permiano.",
+                    geneticFeatures: "Seus fósseis detalhados fornecem informações sobre a evolução dos primeiros artrópodes.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Trilobita", order: "N/A", family: "N/A", genus: "N/A", species: "N/A" },
+                    curiosity: "Foram um dos primeiros grupos de animais a desenvolver olhos complexos.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Trilobite"
+                },
+                {
+                    id: "denteMega1", sequence: "ACTAGCTACTGA", name: "Dente de Megalodon (Fóssil)", scientificName: "Otodus megalodon",
+                    description: "Um dente fossilizado do maior tubarão que já existiu, o Megalodon, um predador ápice dos oceanos pré-históricos.",
+                    habitat: "Oceano global, caçando grandes presas marinhas.",
+                    geneticFeatures: "Embora o genoma completo seja desconhecido, seu tamanho massivo e dentes afiados indicam uma evolução predatória notável.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Chondrichthyes", order: "Lamniformes", family: "Otodontidae", genus: "Otodus", species: "O. megalodon" },
+                    curiosity: "Seus dentes podiam atingir mais de 18 cm de comprimento, sendo os maiores dentes de tubarão conhecidos.",
+                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Dente+Megalodon"
+                }
+            ],
+            "ambienteFloresta": [
+                {
+                    id: "onca1", sequence: "TGCATGCTAGCA", name: "Onça-pintada", scientificName: "Panthera onca",
+                    description: "O maior felino das Américas, conhecido por sua pelagem manchada e sua força de mordida excepcional.",
+                    habitat: "Florestas tropicais, pântanos e áreas arborizadas da América Central e do Sul.",
+                    geneticFeatures: "Genoma com adaptações para sua dieta carnívora e sua distribuição geográfica variada.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Carnivora", family: "Felidae", genus: "Panthera", species: "P. onca" },
+                    curiosity: "É um excelente nadador e caça na água, sendo uma das poucas espécies de grandes felinos que gostam de nadar.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Onca+Pintada"
+                },
+                {
+                    id: "macaco1", sequence: "GCTAGCAGTTAA", name: "Macaco-aranha", scientificName: "Ateles paniscus",
+                    description: "Um primata com braços e pernas longos e uma cauda preênsil, adaptado à vida nas árvores.",
+                    habitat: "Florestas tropicais úmidas da América do Sul.",
+                    geneticFeatures: "Seu genoma reflete sua arboricidade e dieta frugívora, além de sua complexa estrutura social.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Primates", family: "Atelidae", genus: "Ateles", species: "A. paniscus" },
+                    curiosity: "Sua cauda é tão forte e ágil que funciona como um quinto membro, permitindo-lhe balançar entre as árvores com facilidade.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Macaco+Aranha"
+                },
+                {
+                    id: "tucano1", sequence: "TGGCTAGTCGAT", name: "Tucano-de-bico-arco-íris", scientificName: "Ramphastos sulfuratus",
+                    description: "Uma ave colorida com um bico grande e vibrante, habitante das florestas tropicais.",
+                    habitat: "Florestas tropicais e subtropicais do México ao norte da Colômbia.",
+                    geneticFeatures: "Seu genoma é estudado por seus genes de coloração e adaptações dietéticas (frutos).",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Aves", order: "Piciformes", family: "Ramphastidae", genus: "Ramphastos", species: "R. sulfuratus" },
+                    curiosity: "Apesar do tamanho, o bico do tucano é surpreendentemente leve, feito de uma estrutura esponjosa de queratina.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Tucano"
+                },
+                {
+                    id: "arara1", sequence: "ACTGGCTAGCTA", name: "Arara-azul", scientificName: "Anodorhynchus hyacinthinus",
+                    description: "A maior arara do mundo, conhecida por sua plumagem azul-cobalto brilhante e seu bico poderoso.",
+                    habitat: "Florestas úmidas, savanas e áreas abertas com palmeiras, principalmente no Pantanal.",
+                    geneticFeatures: "Seu genoma oferece insights sobre sua longevidade, inteligência e dieta especializada (cocos de palmeira).",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Aves", order: "Psittaciformes", family: "Psittacidae", genus: "Anodorhynchus", species: "A. hyacinthinus" },
+                    curiosity: "Seu bico é tão forte que pode quebrar nozes de palmeira com facilidade, um alimento que poucas outras aves conseguem acessar.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Arara+Azul"
+                },
+                {
+                    id: "sapo1", sequence: "GCTAGTAGTAGC", name: "Sapo-cururu", scientificName: "Rhinella marina",
+                    description: "Um grande sapo terrestre com pele verrugosa e glândulas de veneno proeminentes, nativo das Américas.",
+                    habitat: "Florestas, campos e jardins em regiões tropicais e subtropicais.",
+                    geneticFeatures: "Seu genoma possui genes relacionados à produção de toxinas para defesa contra predadores.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Amphibia", order: "Anura", family: "Bufonidae", genus: "Rhinella", species: "R. marina" },
+                    curiosity: "É uma espécie invasora em muitas partes do mundo, como a Austrália, onde causa grandes impactos ambientais devido à sua toxicidade.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Sapo+Cururu"
+                },
+                {
+                    id: "tamandua1", sequence: "TAGCTAGATGCA", name: "Tamanduá-bandeira", scientificName: "Myrmecophaga tridactyla",
+                    description: "Um mamífero de grande porte com um focinho alongado, adaptado para se alimentar de formigas e cupins.",
+                    habitat: "Savanas, campos e florestas abertas na América Central e do Sul.",
+                    geneticFeatures: "Seu genoma revela adaptações para sua dieta insetívora e sua língua longa e pegajosa.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Pilosa", family: "Myrmecophagidae", genus: "Myrmecophaga", species: "M. tridactyla" },
+                    curiosity: "Sua língua pode ter até 60 cm de comprimento e pode esticá-la e retraí-la até 150 vezes por minuto.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Tamandua"
+                },
+                {
+                    id: "bichoPre1", sequence: "ACGTACGTACGT", name: "Bicho-preguiça", scientificName: "Bradypus variegatus",
+                    description: "Um mamífero arbóreo conhecido por seu metabolismo extremamente lento e movimentos pausados.",
+                    habitat: "Florestas tropicais da América Central e do Sul.",
+                    geneticFeatures: "Genoma com adaptações para sua dieta de folhas de baixo valor nutricional e seu estilo de vida de baixo gasto energético.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Pilosa", family: "Bradypodidae", genus: "Bradypus", species: "B. variegatus" },
+                    curiosity: "Seu pelo abriga algas e insetos, fornecendo camuflagem e nutrientes extras.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Bicho+Preguica"
+                },
+                {
+                    id: "jaguarundi1", sequence: "GTCAGTCAGTGC", name: "Jaguarundi", scientificName: "Herpailurus yagouaroundi",
+                    description: "Um felino pequeno e esguio, de cor uniforme, que se assemelha a uma doninha, diferentemente de outros felinos manchados.",
+                    habitat: "Florestas, matagais e áreas semi-abertas da América do Norte e do Sul.",
+                    geneticFeatures: "Seu genoma reflete sua adaptabilidade a diferentes habitats e sua dieta variada.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Carnivora", family: "Felidae", genus: "Herpailurus", species: "H. yagouaroundi" },
+                    curiosity: "Ao contrário da maioria dos felinos, o jaguarundi é mais ativo durante o dia (diurno).",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Jaguarundi"
+                },
+                {
+                    id: "capivara1", sequence: "TCGATCGTCAGT", name: "Capivara", scientificName: "Hydrochoerus hydrochaeris",
+                    description: "O maior roedor do mundo, semi-aquático, com corpo robusto e membranas interdigitais nos pés.",
+                    habitat: "Áreas próximas a rios, lagos e pântanos na América do Sul.",
+                    geneticFeatures: "Seu genoma contém adaptações para sua vida semi-aquática e sua dieta herbívora.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Rodentia", family: "Caviidae", genus: "Hydrochoerus", species: "H. hydrochaeris" },
+                    curiosity: "São animais muito sociais, vivendo em grupos grandes e são excelentes nadadoras, podendo permanecer submersas por vários minutos.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Capivara"
+                },
+                {
+                    id: "aguia1", sequence: "CATGCATGCATG", name: "Águia-real", scientificName: "Aquila chrysaetos",
+                    description: "Uma das maiores aves de rapina do mundo, conhecida por sua visão aguçada e sua habilidade de caça.",
+                    habitat: "Montanhas, colinas e áreas abertas com florestas em todo o Hemisfério Norte.",
+                    geneticFeatures: "Seu genoma revela genes relacionados à visão de alta acuidade e força muscular para voo e caça.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Aves", order: "Accipitriformes", family: "Accipitridae", genus: "Aquila", species: "A. chrysaetos" },
+                    curiosity: "É capaz de ver uma lebre a mais de 3 km de distância e pode voar em altitudes muito elevadas.",
+                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Aguia+Real"
+                }
+            ]
+        };
 
-            // --- BANCO DE DADOS E CONFIGURAÇÕES ---
+        let currentScreen = '';
+        let currentSequence = '';
+        let identifiedAnimal = null;
 
-            const db = {
-                marinho: [
-                    { name: 'Baleia-azul', sequence: 'AGCTGTCA', description: 'O maior animal do planeta, conhecido pelos seus cantos complexos.', image: '🐋' },
-                    { name: 'Peixe-palhaço', sequence: 'GTCAGTAC', description: 'Vive em anémonas e é famoso pela sua cor laranja vibrante.', image: '🐠' }
-                ],
-                solo: [
-                    { name: 'Minhoca', sequence: 'CCTAGGAT', description: 'Engenheira do ecossistema, essencial para a saúde do solo.', image: '🪱' },
-                    { name: 'Formiga', sequence: 'TCGATCCA', description: 'Inseto social com uma organização complexa e comunicação química.', image: '🐜' }
-                ],
-                cavernicula: [
-                    { name: 'Morcego', sequence: 'AATTCCGG', description: 'Mamífero voador que utiliza a ecolocalização para navegar no escuro.', image: '🦇' },
-                    { name: 'Salamandra cega', sequence: 'GGCCAATT', description: 'Anfíbio que se adaptou à vida sem luz em cavernas subterrâneas.', image: '🦎' }
-                ],
-                floresta: [
-                    { name: 'Ovelha', sequence: 'AACGTCAT', description: 'Herbívoro domesticado, conhecido pela sua lã e comportamento gregário.', image: '🐑' },
-                    { name: 'Lobo', sequence: 'TGCATAGC', description: 'Predador de topo, vive e caça em alcateias organizadas.', image: '🐺' }
-                ]
+        const screens = {
+            home: document.getElementById('screen-home'),
+            scanQr: document.getElementById('screen-scan-qr'),
+            sequenceDisplay: document.getElementById('screen-sequence-display'),
+            sequencing: document.getElementById('screen-sequencing'),
+            genomeAssembly: document.getElementById('screen-genome-assembly'),
+            databaseQuery: document.getElementById('screen-database-query'),
+            geneticAlignment: document.getElementById('screen-genetic-alignment'),
+            identificationCard: document.getElementById('screen-identification-card')
+        };
+
+        // --- Utility Functions ---
+        function showScreen(screenId) {
+            // Hide all screens
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            // Show the target screen
+            screens[screenId].classList.remove('hidden');
+            currentScreen = screenId;
+        }
+
+        function getQueryParams() {
+            const params = {};
+            window.location.search.substring(1).split('&').forEach(param => {
+                const parts = param.split('=');
+                if (parts.length === 2) {
+                    params[parts[0]] = decodeURIComponent(parts[1]);
+                }
+            });
+            return params;
+        }
+
+        function formatSequence(sequence) {
+            // Formats sequence into blocks of 3 for readability
+            if (!sequence) return '';
+            return sequence.match(/.{1,3}/g).join(' ');
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function findAnimalBySequence(sequence) {
+            for (const env in speciesData) {
+                const animal = speciesData[env].find(a => a.sequence === sequence);
+                if (animal) {
+                    return animal;
+                }
+            }
+            return null; // No animal found with this sequence
+        }
+
+        // --- Screen Logic ---
+
+        // Screen: Home (Coleta)
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove selected class from all cards
+                document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+                // Add selected class to the clicked card
+                card.classList.add('selected');
+
+                // Transition to Scan QR screen
+                showScreen('scanQr');
+            });
+        });
+
+        // Screen: Sequence Display
+        function startSequenceDisplay(sequence) {
+            currentSequence = sequence; // Store the sequence globally
+            document.getElementById('display-sequence').textContent = formatSequence(sequence);
+            const progressBar = document.getElementById('sequence-display-progress');
+            const timerText = document.getElementById('sequence-display-timer-text');
+            const duration = 5; // seconds
+            let timeLeft = duration;
+            progressBar.style.width = '0%';
+            timerText.textContent = `Tempo restante: ${timeLeft} segundos`;
+
+            let startTime = Date.now();
+            const interval = setInterval(() => {
+                const elapsedTime = (Date.now() - startTime) / 1000;
+                const progress = (elapsedTime / duration) * 100;
+                progressBar.style.width = `${progress}%`;
+                timeLeft = Math.max(0, duration - Math.floor(elapsedTime));
+                timerText.textContent = `Tempo restante: ${timeLeft} segundos`;
+
+                if (elapsedTime >= duration) {
+                    clearInterval(interval);
+                    // Transition to sequencing screen after display
+                    showScreen('sequencing');
+                    startSequencingProcess(); // Start the sequencing animation
+                }
+            }, 100);
+        }
+
+        // Screen: Sequencing the DNA
+        function startSequencingProcess() {
+            const progressBar = document.getElementById('sequencing-progress');
+            const nextButton = document.getElementById('btn-sequencing-next');
+            progressBar.style.width = '0%'; // Reset
+            nextButton.classList.add('hidden'); // Hide button initially
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 2; // Increment progress
+                progressBar.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    nextButton.classList.remove('hidden'); // Show button when complete
+                }
+            }, 50); // Adjust interval for desired speed
+
+            nextButton.onclick = () => {
+                showScreen('genomeAssembly');
+                setupGenomeAssemblyPuzzle(currentSequence);
             };
+        }
 
-            const environments = [
-                { id: 'marinho', name: 'Organismos marinhos', icon: '🌊', color: 'bg-blue-400', hover: 'hover:bg-blue-500' },
-                { id: 'solo', name: 'Organismos que vivem no solo', icon: '🟫', color: 'bg-yellow-500', hover: 'hover:bg-yellow-600' },
-                { id: 'cavernicula', name: 'Seres cavernículas e fósseis', icon: '⛰️', color: 'bg-gray-500', hover: 'hover:bg-gray-600' },
-                { id: 'floresta', name: 'Organismos que vivem em florestas', icon: '🌲', color: 'bg-green-500', hover: 'hover:bg-green-600' }
-            ];
+        // Screen: Genome Assembly (Puzzle)
+        let originalSequenceBlocks = [];
+        let assembledBlocks = [];
 
-            // --- ESTADO DO JOGO ---
-            let gameState = {
-                currentScreen: 'start-screen',
-                selectedEnvironment: null,
-                correctSequence: '',
-                targetOrganism: null,
-                puzzlePieces: [],
-            };
+        function setupGenomeAssemblyPuzzle(sequence) {
+            const sequenceDiv = document.getElementById('original-sequence-display');
+            sequenceDiv.textContent = formatSequence(sequence);
 
-            // --- ELEMENTOS DO DOM ---
-            const screens = {
-                start: document.getElementById('start-screen'),
-                puzzle: document.getElementById('puzzle-screen'),
-                query: document.getElementById('query-screen'),
-                identification: document.getElementById('identification-screen'),
-                organismFile: document.getElementById('organism-file-screen'),
-            };
+            originalSequenceBlocks = sequence.match(/.{1,3}/g); // Break into 3-char blocks
+            const shuffledBlocks = shuffleArray([...originalSequenceBlocks]); // Copy and shuffle
 
-            const environmentSelection = document.getElementById('environment-selection');
-            const puzzleContainer = document.getElementById('puzzle-container');
-            const puzzleSlots = document.getElementById('puzzle-slots');
-            const checkPuzzleBtn = document.getElementById('check-puzzle-btn');
-            const assembledSequenceEl = document.getElementById('assembled-sequence');
-            const sequenceInput = document.getElementById('sequence-input');
-            const searchDbBtn = document.getElementById('search-db-btn');
-            const phylogeneticTree = document.getElementById('phylogenetic-tree');
-            const identificationResult = document.getElementById('identification-result');
-            const organismCard = document.getElementById('organism-card');
-            const playAgainBtn = document.getElementById('play-again-btn');
+            const sourceArea = document.getElementById('dna-blocks-source');
+            sourceArea.innerHTML = ''; // Clear previous blocks
+            assembledBlocks = []; // Reset assembled blocks
 
-            // --- FUNÇÕES DO JOGO ---
+            shuffledBlocks.forEach((block, index) => {
+                const dnaBlock = document.createElement('div');
+                dnaBlock.classList.add('dna-block', 'px-3', 'py-2', 'rounded-lg', 'bg-gray-200', 'cursor-grab', 'hover:bg-gray-300', 'transition-colors', 'select-none');
+                dnaBlock.textContent = block;
+                dnaBlock.setAttribute('draggable', true);
+                dnaBlock.id = `block-${index}`;
+                sourceArea.appendChild(dnaBlock);
 
-            /**
-             * Muda o ecrã visível no jogo
-             * @param {string} screenId - O ID do ecrã a ser mostrado
-             */
-            function switchScreen(screenId) {
-                Object.values(screens).forEach(screen => screen.classList.add('hidden'));
-                if (screens[screenId]) {
-                    screens[screenId].classList.remove('hidden');
-                } else {
-                    document.getElementById(screenId).classList.remove('hidden');
-                }
-                gameState.currentScreen = screenId;
-            }
-
-            /**
-             * Inicializa o jogo, preenchendo a seleção de ambientes
-             */
-            function initGame() {
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const sequenceFromUrl = urlParams.get('seq');
-
-
-                if (sequenceFromUrl) { alert(`Sequência carregada da URL: ${sequenceFromUrl}`) }
-
-                environmentSelection.innerHTML = ''; // Limpa antes de adicionar
-                environments.forEach(env => {
-                    const button = document.createElement('button');
-                    button.className = `p-6 rounded-xl text-white font-bold text-lg shadow-md transition-transform transform hover:scale-105 ${env.color} ${env.hover}`;
-                    button.innerHTML = `<div class="text-4xl mb-2">${env.icon}</div><span>${env.name}</span>`;
-                    button.onclick = () => selectEnvironment(env.id);
-                    environmentSelection.appendChild(button);
+                // Drag events for source blocks
+                dnaBlock.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.id);
+                    e.dataTransfer.effectAllowed = 'move';
                 });
-                switchScreen('start');
-            }
-
-            /**
-             * Seleciona um ambiente e prepara a fase do quebra-cabeças
-             * @param {string} envId - O ID do ambiente selecionado
-             */
-            function selectEnvironment(envId) {
-                gameState.selectedEnvironment = envId;
-                const organisms = db[envId];
-                gameState.targetOrganism = organisms[Math.floor(Math.random() * organisms.length)];
-                gameState.correctSequence = gameState.targetOrganism.sequence;
-
-                // Divide a sequência em fragmentos de 2 caracteres
-                const fragments = gameState.correctSequence.match(/.{1,2}/g);
-
-                // Baralha os fragmentos
-                gameState.puzzlePieces = fragments.sort(() => Math.random() - 0.5);
-
-                setupPuzzleScreen();
-                switchScreen('puzzle');
-            }
-
-            /**
-             * Configura o ecrã do quebra-cabeças com as peças
-             */
-            function setupPuzzleScreen() {
-                puzzleContainer.innerHTML = '';
-                puzzleSlots.innerHTML = '';
-                checkPuzzleBtn.disabled = true;
-
-                // Cria as peças do quebra-cabeças
-                gameState.puzzlePieces.forEach((piece, index) => {
-                    const pieceEl = document.createElement('div');
-                    pieceEl.id = `piece-${index}`;
-                    pieceEl.className = 'puzzle-piece bg-indigo-500 text-white font-mono text-xl p-4 rounded-lg shadow-md';
-                    pieceEl.textContent = piece;
-                    pieceEl.draggable = true;
-                    puzzleContainer.appendChild(pieceEl);
-                });
-
-                // Cria os espaços para soltar
-                for (let i = 0; i < gameState.puzzlePieces.length; i++) {
-                    const slotEl = document.createElement('div');
-                    slotEl.id = `slot-${i}`;
-                    slotEl.className = 'placeholder w-20 h-14 rounded-lg';
-                    puzzleSlots.appendChild(slotEl);
-                }
-
-                addDragAndDropListeners();
-            }
-
-            /**
-             * Adiciona os ouvintes de eventos para o drag and drop
-             */
-            function addDragAndDropListeners() {
-                const pieces = document.querySelectorAll('.puzzle-piece');
-                const slots = document.querySelectorAll('.placeholder');
-
-                pieces.forEach(piece => {
-                    piece.addEventListener('dragstart', (e) => {
-                        e.dataTransfer.setData('text/plain', e.target.id);
-                        setTimeout(() => piece.classList.add('invisible'), 0);
-                    });
-                    piece.addEventListener('dragend', () => {
-                        piece.classList.remove('invisible');
-                    });
-                });
-
-                slots.forEach(slot => {
-                    slot.addEventListener('dragover', (e) => {
-                        e.preventDefault(); // Necessário para permitir o drop
-                        slot.classList.add('bg-indigo-100');
-                    });
-                    slot.addEventListener('dragleave', () => {
-                        slot.classList.remove('bg-indigo-100');
-                    });
-                    slot.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        slot.classList.remove('bg-indigo-100');
-                        const pieceId = e.dataTransfer.getData('text/plain');
-                        const piece = document.getElementById(pieceId);
-
-                        // Se o slot já tiver uma peça, troca-a de lugar com a peça arrastada
-                        if (slot.children.length > 0) {
-                            const existingPiece = slot.children[0];
-                            puzzleContainer.appendChild(existingPiece);
-                        }
-
-                        if (piece) {
-                            slot.appendChild(piece);
-                        }
-                        checkPuzzleCompletion();
-                    });
-                });
-            }
-
-            /**
-             * Verifica se todos os espaços foram preenchidos para ativar o botão
-             */
-            function checkPuzzleCompletion() {
-                const filledSlots = Array.from(puzzleSlots.children).filter(child => child.children.length > 0).length;
-                checkPuzzleBtn.disabled = filledSlots !== gameState.puzzlePieces.length;
-            }
-
-            /**
-             * Verifica a sequência montada pelo utilizador
-             */
-            function checkPuzzle() {
-                let userAnswer = '';
-                const slots = puzzleSlots.querySelectorAll('.placeholder');
-                slots.forEach(slot => {
-                    if (slot.children.length > 0) {
-                        userAnswer += slot.children[0].textContent;
-                    }
-                });
-
-                if (userAnswer === gameState.correctSequence) {
-                    assembledSequenceEl.textContent = userAnswer;
-                    sequenceInput.value = userAnswer;
-                    switchScreen('query');
-                } else {
-                    alert('Sequência incorreta! Tente novamente.');
-                }
-            }
-
-            /**
-            * Simula a busca no banco de dados e mostra a árvore filogenética
-            */
-            function searchDatabase() {
-                phylogeneticTree.innerHTML = ''; // Limpa a árvore anterior
-                identificationResult.textContent = 'A alinhar sequência...';
-
-                // Gera uma lista de sequências "semelhantes" para a árvore
-                const similarSequences = generateSimilarSequences(gameState.correctSequence, 3);
-                const allSequences = [...similarSequences, gameState.correctSequence].sort(() => Math.random() - 0.5);
-
-                const treeEl = document.createElement('div');
-                treeEl.className = 'p-4 rounded-lg bg-gray-900 text-white font-mono w-full max-w-lg';
-
-                let treeHTML = '<ul>';
-                allSequences.forEach((seq, index) => {
-                    const isMatch = seq === gameState.correctSequence;
-                    const highlightClass = isMatch ? 'bg-indigo-600 p-2 rounded' : '';
-                    const organismIcon = isMatch ? gameState.targetOrganism.image : '❓';
-                    treeHTML += `<li class="my-2"><span class="${highlightClass}">${seq}</span> <span class="ml-4">${organismIcon}</span></li>`;
-                });
-                treeHTML += '</ul>';
-                treeEl.innerHTML = treeHTML;
-                phylogeneticTree.appendChild(treeEl);
-
-                switchScreen('identification');
-
-                // Simula um tempo de carregamento para a identificação
-                setTimeout(() => {
-                    identificationResult.textContent = `Correspondência encontrada: ${gameState.targetOrganism.name}!`;
-                    setTimeout(showOrganismFile, 2000); // Mostra a ficha após 2 segundos
-                }, 1500);
-            }
-
-            /**
-             * Gera sequências aleatórias "semelhantes" à correta para preencher a árvore
-             * @param {string} baseSequence - A sequência correta
-             * @param {number} count - Quantas sequências gerar
-             * @returns {string[]} - Um array de sequências
-             */
-            function generateSimilarSequences(baseSequence, count) {
-                const similar = new Set();
-                const chars = ['A', 'C', 'G', 'T'];
-                while (similar.size < count) {
-                    let newSeq = baseSequence.split('');
-                    // Altera um ou dois caracteres aleatoriamente
-                    const changes = Math.random() > 0.5 ? 1 : 2;
-                    for (let i = 0; i < changes; i++) {
-                        const randomIndex = Math.floor(Math.random() * newSeq.length);
-                        const randomChar = chars[Math.floor(Math.random() * chars.length)];
-                        newSeq[randomIndex] = randomChar;
-                    }
-                    if (newSeq.join('') !== baseSequence) {
-                        similar.add(newSeq.join(''));
-                    }
-                }
-                return Array.from(similar);
-            }
-
-            /**
-             * Mostra a ficha final com as informações do organismo
-             */
-            function showOrganismFile() {
-                const { name, sequence, description, image } = gameState.targetOrganism;
-                organismCard.innerHTML = `
-                    <div class="text-7xl mb-4">${image}</div>
-                    <h3 class="text-3xl font-bold text-gray-900">${name}</h3>
-                    <p class="font-mono text-lg bg-gray-200 text-indigo-700 px-4 py-2 rounded-md my-4 inline-block">${sequence}</p>
-                    <p class="text-gray-700 max-w-md">${description}</p>
-                `;
-                switchScreen('organismFile');
-            }
-
-            // --- EVENT LISTENERS ---
-            checkPuzzleBtn.addEventListener('click', checkPuzzle);
-            searchDbBtn.addEventListener('click', searchDatabase);
-            playAgainBtn.addEventListener('click', () => {
-                // Reinicia o estado do jogo e volta para o início
-                gameState = {
-                    currentScreen: 'start-screen',
-                    selectedEnvironment: null,
-                    correctSequence: '',
-                    targetOrganism: null,
-                    puzzlePieces: [],
-                };
-                initGame();
             });
 
-            initGame();
+            const targetArea = document.getElementById('dna-target-area');
+            targetArea.innerHTML = '<p class="text-gray-400 text-center text-sm">Arraste os blocos de DNA aqui na ordem correta.</p>'; // Placeholder
+            targetArea.classList.remove('border-green-500', 'border-red-500'); // Reset border color
 
+            // Drop events for target area
+            targetArea.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Allow drop
+                e.dataTransfer.dropEffect = 'move';
+                targetArea.classList.add('border-blue-500'); // Visual feedback on drag over
+            });
+            targetArea.addEventListener('dragleave', () => {
+                targetArea.classList.remove('border-blue-500');
+            });
+            targetArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                targetArea.classList.remove('border-blue-500');
+                const id = e.dataTransfer.getData('text/plain');
+                const draggedElement = document.getElementById(id);
+
+                if (draggedElement && draggedElement.parentElement === sourceArea) {
+                    if (targetArea.querySelector('p')) { // Remove placeholder if exists
+                        targetArea.innerHTML = '';
+                    }
+                    targetArea.appendChild(draggedElement);
+                    assembledBlocks.push(draggedElement.textContent);
+                    // Update classes for visual feedback if needed
+                    draggedElement.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+                    draggedElement.classList.add('bg-gray-100', 'cursor-default'); // Make it look "placed"
+                    draggedElement.removeAttribute('draggable');
+                }
+            });
+
+            document.getElementById('btn-check-assembly').onclick = checkGenomeAssembly;
+            document.getElementById('btn-assembly-next').classList.add('hidden');
+            document.getElementById('assembly-message').textContent = '';
+        }
+
+        function checkGenomeAssembly() {
+            const assembledSequence = assembledBlocks.join('');
+            const originalFullSequence = originalSequenceBlocks.join('');
+            const messageElement = document.getElementById('assembly-message');
+            const nextButton = document.getElementById('btn-assembly-next');
+            const targetArea = document.getElementById('dna-target-area');
+
+            // Reset block colors
+            targetArea.querySelectorAll('.dna-block').forEach(block => {
+                block.classList.remove('correct', 'incorrect');
+            });
+
+            if (assembledSequence === originalFullSequence) {
+                messageElement.textContent = 'Montagem correta! 🎉';
+                messageElement.classList.remove('text-red-600');
+                messageElement.classList.add('text-green-600');
+                nextButton.classList.remove('hidden');
+
+                // Mark blocks as correct
+                targetArea.querySelectorAll('.dna-block').forEach(block => {
+                    block.classList.add('correct');
+                });
+
+            } else {
+                messageElement.textContent = 'Montagem incorreta. Tente novamente.';
+                messageElement.classList.remove('text-green-600');
+                messageElement.classList.add('text-red-600');
+                nextButton.classList.add('hidden');
+
+                // Provide feedback on incorrect blocks (simple, based on position)
+                const targetBlocks = targetArea.querySelectorAll('.dna-block');
+                for (let i = 0; i < assembledBlocks.length; i++) {
+                    if (assembledBlocks[i] !== originalSequenceBlocks[i]) {
+                        targetBlocks[i].classList.add('incorrect');
+                    } else {
+                        targetBlocks[i].classList.add('correct');
+                    }
+                }
+            }
+        }
+
+        document.getElementById('btn-assembly-next').onclick = () => {
+            showScreen('databaseQuery');
+            setupDatabaseQuery(currentSequence);
+        };
+
+        // Screen: Database Query
+        function setupDatabaseQuery(sequence) {
+            document.getElementById('dna-sequence-input').value = formatSequence(sequence);
+            const dbStatusText = document.getElementById('db-status-text');
+            const dbProcessingArea = document.getElementById('db-processing-area');
+            const nextButton = document.getElementById('btn-db-next');
+
+            dbStatusText.textContent = 'Aguardando entrada de sequência para iniciar a busca...';
+            dbProcessingArea.classList.remove('bg-green-50', 'bg-red-50');
+            dbProcessingArea.classList.add('bg-gray-50');
+            nextButton.classList.add('hidden');
+
+            // Simulate search button click
+            document.getElementById('btn-search-db').onclick = () => {
+                dbStatusText.textContent = 'Processando dados e comparando com registros no banco...';
+                dbProcessingArea.innerHTML = `
+                    <svg class="animate-spin h-10 w-10 text-green-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-lg text-gray-700">Buscando no banco de dados genômico...</p>
+                `;
+
+                // Simulate network request/processing time
+                setTimeout(() => {
+                    identifiedAnimal = findAnimalBySequence(currentSequence);
+                    if (identifiedAnimal) {
+                        dbProcessingArea.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle text-green-500 mb-4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                            <p class="text-lg text-green-700">Sequência encontrada! Pronto para o alinhamento.</p>
+                        `;
+                        dbProcessingArea.classList.remove('bg-gray-50');
+                        dbProcessingArea.classList.add('bg-green-50');
+                        nextButton.classList.remove('hidden');
+                    } else {
+                        dbProcessingArea.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle text-red-500 mb-4"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                            <p class="text-lg text-red-700">Sequência não encontrada em nosso banco. Tente outra!</p>
+                        `;
+                        dbProcessingArea.classList.remove('bg-gray-50');
+                        dbProcessingArea.classList.add('bg-red-50');
+                        nextButton.classList.add('hidden'); // Ensure button is hidden if not found
+                    }
+                }, 3000); // Simulate 3 seconds of processing
+            };
+        }
+
+        document.getElementById('btn-db-next').onclick = () => {
+            showScreen('geneticAlignment');
+            setupGeneticAlignment(identifiedAnimal);
+        };
+
+        // Screen: Genetic Alignment
+        function setupGeneticAlignment(animal) {
+            const visualizationArea = document.getElementById('alignment-visualization');
+            const summaryText = document.getElementById('alignment-summary');
+            visualizationArea.innerHTML = '';
+            summaryText.textContent = '';
+
+            if (!animal) {
+                summaryText.textContent = 'Nenhum animal identificado para alinhamento.';
+                return;
+            }
+
+            // Simulate similar species and their similarity percentage
+            const similarSpecies = [
+                { name: animal.name, similarity: 100, isUserAnimal: true },
+                { name: 'Parente Próximo A', similarity: Math.max(90, animal.similarity - 5) },
+                { name: 'Parente Próximo B', similarity: Math.max(80, animal.similarity - 10) },
+                { name: 'Parente Distante C', similarity: Math.max(60, animal.similarity - 20) }
+            ];
+
+            // Filter out exact duplicates if the identified animal's name is too generic
+            // And ensure names are unique for the visualization
+            let uniqueSimilarSpecies = [];
+            let namesUsed = new Set();
+            similarSpecies.forEach(s => {
+                if (!namesUsed.has(s.name)) {
+                    uniqueSimilarSpecies.push(s);
+                    namesUsed.add(s.name);
+                } else if (s.isUserAnimal) { // Ensure the actual identified animal is always included
+                     uniqueSimilarSpecies.unshift(s); // Put user animal first
+                }
+            });
+
+
+            uniqueSimilarSpecies.forEach(s => {
+                const barContainer = document.createElement('div');
+                barContainer.classList.add('flex', 'items-center', 'mb-2');
+                const nameSpan = document.createElement('span');
+                nameSpan.classList.add('w-40', 'text-gray-700', 'font-medium', 'text-right', 'mr-4');
+                nameSpan.textContent = s.name + ':';
+                barContainer.appendChild(nameSpan);
+
+                const progressBarWrapper = document.createElement('div');
+                progressBarWrapper.classList.add('flex-grow', 'bg-gray-200', 'rounded-full', 'h-4', 'overflow-hidden');
+                const progressBarFill = document.createElement('div');
+                progressBarFill.classList.add('h-full', 'rounded-full', 'transition-all', 'duration-1000', 'ease-out');
+                progressBarFill.style.width = `${s.similarity}%`;
+                progressBarFill.style.backgroundColor = s.isUserAnimal ? '#4CAF50' : '#2196F3'; // Green for user animal, blue for others
+                progressBarWrapper.appendChild(progressBarFill);
+                barContainer.appendChild(progressBarWrapper);
+
+                const percentageSpan = document.createElement('span');
+                percentageSpan.classList.add('ml-4', 'text-gray-700', 'font-bold', 'w-12');
+                percentageSpan.textContent = `${s.similarity}%`;
+                barContainer.appendChild(percentageSpan);
+
+                visualizationArea.appendChild(barContainer);
+            });
+
+            summaryText.textContent = `O sistema encontrou que sua sequência é ${animal.similarity || 100}% similar à espécie ${animal.name}, indicando um forte parentesco genético.`;
+        }
+
+        document.getElementById('btn-alignment-next').onclick = () => {
+            showScreen('identificationCard');
+            displayIdentificationCard(identifiedAnimal);
+        };
+
+        // Screen: Identification Card
+        function displayIdentificationCard(animal) {
+            if (!animal) return;
+
+            document.getElementById('card-animal-name').textContent = `${animal.name} (${animal.scientificName})`;
+            document.getElementById('card-animal-image').src = animal.image;
+            document.getElementById('card-animal-image').onerror = function() { this.src = 'https://placehold.co/200x200/CCCCCC/666666?text=Imagem+N/A'; }; // Fallback image
+            document.getElementById('card-description').textContent = animal.description;
+            document.getElementById('card-habitat').textContent = animal.habitat;
+            document.getElementById('card-genetic-features').textContent = animal.geneticFeatures;
+            document.getElementById('card-curiosity').textContent = animal.curiosity;
+
+            // Taxonomy
+            document.getElementById('card-taxonomy-kingdom').textContent = animal.taxonomy.kingdom;
+            document.getElementById('card-taxonomy-phylum').textContent = animal.taxonomy.phylum;
+            document.getElementById('card-taxonomy-class').textContent = animal.taxonomy.class;
+            document.getElementById('card-taxonomy-order').textContent = animal.taxonomy.order;
+            document.getElementById('card-taxonomy-family').textContent = animal.taxonomy.family;
+            document.getElementById('card-taxonomy-genus').textContent = animal.taxonomy.genus;
+            document.getElementById('card-taxonomy-species').textContent = animal.taxonomy.species;
+        }
+
+        document.getElementById('btn-identify-another').onclick = () => {
+            // Reset game state and go back to QR scan screen
+            currentSequence = '';
+            identifiedAnimal = null;
+            window.history.pushState({}, document.title, window.location.pathname); // Clear URL params
+            showScreen('scanQr');
+        };
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getQueryParams();
+            if (params.seq) {
+                // If sequence is in URL, start game from sequence display
+                showScreen('sequenceDisplay');
+                startSequenceDisplay(params.seq.toUpperCase()); // Ensure uppercase for consistency
+            } else {
+                // Otherwise, start from the home screen
+                showScreen('home');
+            }
         });
     </script>
 </body>
-
 </html>
