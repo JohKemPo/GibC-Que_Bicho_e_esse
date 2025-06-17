@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIB2C - Jogo de Bioinformática</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .puzzle-piece {
+            transition: all 0.3s ease-in-out;
+            cursor: grab;
+        }
+        .puzzle-piece:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .placeholder {
+            border: 2px dashed #cbd5e1;
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
+
+    <div id="game-container" class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10 transition-all duration-500">
+
+        <!-- Ecrã Inicial (Coleta) -->
+        <div id="start-screen">
+            <header class="text-center mb-8">
+                <div class="inline-flex items-center gap-4">
+                     <svg class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                     </svg>
+                     <h1 class="text-3xl font-bold text-gray-900">GIB2C - Bioinformática</h1>
+                </div>
+                <p class="text-xl text-gray-600 mt-2">Que bicho é esse?</p>
+            </header>
+            <main class="text-center">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800">1. Coleta: Escolha um ambiente</h2>
+                <div id="environment-selection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Opções de ambiente serão inseridas aqui pelo JavaScript -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Ecrã do Quebra-cabeças (Montagem do Genoma) -->
+        <div id="puzzle-screen" class="hidden text-center">
+            <h2 class="text-2xl font-semibold mb-2 text-gray-800">2. Montagem do Genoma</h2>
+            <p class="text-gray-600 mb-6">Organize os fragmentos para montar a sequência de DNA.</p>
+            <div id="puzzle-container" class="flex justify-center items-center gap-2 p-4 bg-gray-50 rounded-lg mb-6 min-h-[80px]">
+                <!-- Peças do quebra-cabeças aqui -->
+            </div>
+            <div id="puzzle-slots" class="flex justify-center items-center gap-2 p-4 bg-gray-200 rounded-lg min-h-[80px]">
+                <!-- Espaços para encaixar as peças aqui -->
+            </div>
+             <button id="check-puzzle-btn" class="mt-8 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400">Verificar Sequência</button>
+        </div>
+
+        <!-- Ecrã de Consulta (Banco de Dados) -->
+        <div id="query-screen" class="hidden text-center">
+             <h2 class="text-2xl font-semibold mb-6 text-gray-800">3. Consulta ao Banco de Dados</h2>
+             <p class="text-gray-600 mb-6">A sequência montada foi: <strong id="assembled-sequence" class="font-mono text-indigo-600"></strong></p>
+             <div class="flex flex-col items-center">
+                 <input type="text" id="sequence-input" class="w-full max-w-md text-center font-mono text-lg p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" readonly>
+                 <button id="search-db-btn" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Consultar</button>
+             </div>
+        </div>
+
+        <!-- Ecrã de Identificação (Alinhamento) -->
+        <div id="identification-screen" class="hidden">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">4. Alinhamento e Identificação</h2>
+            <div id="phylogenetic-tree" class="flex justify-center">
+                <!-- Árvore filogenética será gerada aqui -->
+            </div>
+            <p id="identification-result" class="text-center mt-6 text-lg font-medium"></p>
+        </div>
+
+        <!-- Ecrã Final (Ficha do Organismo) -->
+        <div id="organism-file-screen" class="hidden">
+             <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">5. Ficha do Organismo</h2>
+             <div id="organism-card" class="bg-gray-50 rounded-lg p-8 text-center flex flex-col items-center">
+                 <!-- Informações do organismo aqui -->
+             </div>
+             <div class="text-center mt-8">
+                 <button id="play-again-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Jogar Novamente</button>
+             </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- BANCO DE DADOS E CONFIGURAÇÕES ---
+
+            const db = {
+                marinho: [
+                    { name: 'Baleia-azul', sequence: 'AGCTGTCA', description: 'O maior animal do planeta, conhecido pelos seus cantos complexos.', image: '🐋' },
+                    { name: 'Peixe-palhaço', sequence: 'GTCAGTAC', description: 'Vive em anémonas e é famoso pela sua cor laranja vibrante.', image: '🐠' }
+                ],
+                solo: [
+                    { name: 'Minhoca', sequence: 'CCTAGGAT', description: 'Engenheira do ecossistema, essencial para a saúde do solo.', image: '🪱' },
+                    { name: 'Formiga', sequence: 'TCGATCCA', description: 'Inseto social com uma organização complexa e comunicação química.', image: '🐜' }
+                ],
+                cavernicula: [
+                    { name: 'Morcego', sequence: 'AATTCCGG', description: 'Mamífero voador que utiliza a ecolocalização para navegar no escuro.', image: '🦇' },
+                    { name: 'Salamandra cega', sequence: 'GGCCAATT', description: 'Anfíbio que se adaptou à vida sem luz em cavernas subterrâneas.', image: '🦎' }
+                ],
+                floresta: [
+                    { name: 'Ovelha', sequence: 'AACGTCAT', description: 'Herbívoro domesticado, conhecido pela sua lã e comportamento gregário.', image: '🐑' },
+                    { name: 'Lobo', sequence: 'TGCATAGC', description: 'Predador de topo, vive e caça em alcateias organizadas.', image: '🐺' }
+                ]
+            };
+
+            const environments = [
+                { id: 'marinho', name: 'Organismos marinhos', icon: '🌊', color: 'bg-blue-400', hover: 'hover:bg-blue-500' },
+                { id: 'solo', name: 'Organismos que vivem no solo', icon: '🟫', color: 'bg-yellow-500', hover: 'hover:bg-yellow-600' },
+                { id: 'cavernicula', name: 'Seres cavernículas e fósseis', icon: '⛰️', color: 'bg-gray-500', hover: 'hover:bg-gray-600' },
+                { id: 'floresta', name: 'Organismos que vivem em florestas', icon: '🌲', color: 'bg-green-500', hover: 'hover:bg-green-600' }
+            ];
+
+            // --- ESTADO DO JOGO ---
+            let gameState = {
+                currentScreen: 'start-screen',
+                selectedEnvironment: null,
+                correctSequence: '',
+                targetOrganism: null,
+                puzzlePieces: [],
+            };
+
+            // --- ELEMENTOS DO DOM ---
+            const screens = {
+                start: document.getElementById('start-screen'),
+                puzzle: document.getElementById('puzzle-screen'),
+                query: document.getElementById('query-screen'),
+                identification: document.getElementById('identification-screen'),
+                organismFile: document.getElementById('organism-file-screen'),
+            };
+
+            const environmentSelection = document.getElementById('environment-selection');
+            const puzzleContainer = document.getElementById('puzzle-container');
+            const puzzleSlots = document.getElementById('puzzle-slots');
+            const checkPuzzleBtn = document.getElementById('check-puzzle-btn');
+            const assembledSequenceEl = document.getElementById('assembled-sequence');
+            const sequenceInput = document.getElementById('sequence-input');
+            const searchDbBtn = document.getElementById('search-db-btn');
+            const phylogeneticTree = document.getElementById('phylogenetic-tree');
+            const identificationResult = document.getElementById('identification-result');
+            const organismCard = document.getElementById('organism-card');
+            const playAgainBtn = document.getElementById('play-again-btn');
+
+            // --- FUNÇÕES DO JOGO ---
+
+            /**
+             * Muda o ecrã visível no jogo
+             * @param {string} screenId - O ID do ecrã a ser mostrado
+             */
+            function switchScreen(screenId) {
+                Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+                if (screens[screenId]) {
+                    screens[screenId].classList.remove('hidden');
+                } else {
+                     document.getElementById(screenId).classList.remove('hidden');
+                }
+                gameState.currentScreen = screenId;
+            }
+
+            /**
+             * Inicializa o jogo, preenchendo a seleção de ambientes
+             */
+            function initGame() {
+                environmentSelection.innerHTML = ''; // Limpa antes de adicionar
+                environments.forEach(env => {
+                    const button = document.createElement('button');
+                    button.className = `p-6 rounded-xl text-white font-bold text-lg shadow-md transition-transform transform hover:scale-105 ${env.color} ${env.hover}`;
+                    button.innerHTML = `<div class="text-4xl mb-2">${env.icon}</div><span>${env.name}</span>`;
+                    button.onclick = () => selectEnvironment(env.id);
+                    environmentSelection.appendChild(button);
+                });
+                switchScreen('start');
+            }
+
+            /**
+             * Seleciona um ambiente e prepara a fase do quebra-cabeças
+             * @param {string} envId - O ID do ambiente selecionado
+             */
+            function selectEnvironment(envId) {
+                gameState.selectedEnvironment = envId;
+                const organisms = db[envId];
+                gameState.targetOrganism = organisms[Math.floor(Math.random() * organisms.length)];
+                gameState.correctSequence = gameState.targetOrganism.sequence;
+                
+                // Divide a sequência em fragmentos de 2 caracteres
+                const fragments = gameState.correctSequence.match(/.{1,2}/g);
+                
+                // Baralha os fragmentos
+                gameState.puzzlePieces = fragments.sort(() => Math.random() - 0.5);
+
+                setupPuzzleScreen();
+                switchScreen('puzzle');
+            }
+            
+            /**
+             * Configura o ecrã do quebra-cabeças com as peças
+             */
+            function setupPuzzleScreen() {
+                puzzleContainer.innerHTML = '';
+                puzzleSlots.innerHTML = '';
+                checkPuzzleBtn.disabled = true;
+
+                // Cria as peças do quebra-cabeças
+                gameState.puzzlePieces.forEach((piece, index) => {
+                    const pieceEl = document.createElement('div');
+                    pieceEl.id = `piece-${index}`;
+                    pieceEl.className = 'puzzle-piece bg-indigo-500 text-white font-mono text-xl p-4 rounded-lg shadow-md';
+                    pieceEl.textContent = piece;
+                    pieceEl.draggable = true;
+                    puzzleContainer.appendChild(pieceEl);
+                });
+
+                // Cria os espaços para soltar
+                for (let i = 0; i < gameState.puzzlePieces.length; i++) {
+                    const slotEl = document.createElement('div');
+                    slotEl.id = `slot-${i}`;
+                    slotEl.className = 'placeholder w-20 h-14 rounded-lg';
+                    puzzleSlots.appendChild(slotEl);
+                }
+
+                addDragAndDropListeners();
+            }
+
+            /**
+             * Adiciona os ouvintes de eventos para o drag and drop
+             */
+            function addDragAndDropListeners() {
+                const pieces = document.querySelectorAll('.puzzle-piece');
+                const slots = document.querySelectorAll('.placeholder');
+
+                pieces.forEach(piece => {
+                    piece.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', e.target.id);
+                        setTimeout(() => piece.classList.add('invisible'), 0);
+                    });
+                    piece.addEventListener('dragend', () => {
+                         piece.classList.remove('invisible');
+                    });
+                });
+
+                slots.forEach(slot => {
+                    slot.addEventListener('dragover', (e) => {
+                        e.preventDefault(); // Necessário para permitir o drop
+                        slot.classList.add('bg-indigo-100');
+                    });
+                     slot.addEventListener('dragleave', () => {
+                        slot.classList.remove('bg-indigo-100');
+                    });
+                    slot.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        slot.classList.remove('bg-indigo-100');
+                        const pieceId = e.dataTransfer.getData('text/plain');
+                        const piece = document.getElementById(pieceId);
+
+                        // Se o slot já tiver uma peça, troca-a de lugar com a peça arrastada
+                        if (slot.children.length > 0) {
+                            const existingPiece = slot.children[0];
+                            puzzleContainer.appendChild(existingPiece);
+                        }
+                        
+                        if(piece) {
+                           slot.appendChild(piece);
+                        }
+                        checkPuzzleCompletion();
+                    });
+                });
+            }
+
+            /**
+             * Verifica se todos os espaços foram preenchidos para ativar o botão
+             */
+            function checkPuzzleCompletion() {
+                const filledSlots = Array.from(puzzleSlots.children).filter(child => child.children.length > 0).length;
+                checkPuzzleBtn.disabled = filledSlots !== gameState.puzzlePieces.length;
+            }
+
+            /**
+             * Verifica a sequência montada pelo utilizador
+             */
+            function checkPuzzle() {
+                let userAnswer = '';
+                const slots = puzzleSlots.querySelectorAll('.placeholder');
+                slots.forEach(slot => {
+                    if (slot.children.length > 0) {
+                        userAnswer += slot.children[0].textContent;
+                    }
+                });
+                
+                if (userAnswer === gameState.correctSequence) {
+                    assembledSequenceEl.textContent = userAnswer;
+                    sequenceInput.value = userAnswer;
+                    switchScreen('query');
+                } else {
+                    alert('Sequência incorreta! Tente novamente.');
+                }
+            }
+            
+             /**
+             * Simula a busca no banco de dados e mostra a árvore filogenética
+             */
+            function searchDatabase() {
+                phylogeneticTree.innerHTML = ''; // Limpa a árvore anterior
+                identificationResult.textContent = 'A alinhar sequência...';
+
+                // Gera uma lista de sequências "semelhantes" para a árvore
+                const similarSequences = generateSimilarSequences(gameState.correctSequence, 3);
+                const allSequences = [...similarSequences, gameState.correctSequence].sort(() => Math.random() - 0.5);
+
+                const treeEl = document.createElement('div');
+                treeEl.className = 'p-4 rounded-lg bg-gray-900 text-white font-mono w-full max-w-lg';
+
+                let treeHTML = '<ul>';
+                allSequences.forEach((seq, index) => {
+                    const isMatch = seq === gameState.correctSequence;
+                    const highlightClass = isMatch ? 'bg-indigo-600 p-2 rounded' : '';
+                    const organismIcon = isMatch ? gameState.targetOrganism.image : '❓';
+                    treeHTML += `<li class="my-2"><span class="${highlightClass}">${seq}</span> <span class="ml-4">${organismIcon}</span></li>`;
+                });
+                treeHTML += '</ul>';
+                treeEl.innerHTML = treeHTML;
+                phylogeneticTree.appendChild(treeEl);
+
+                switchScreen('identification');
+                
+                // Simula um tempo de carregamento para a identificação
+                setTimeout(() => {
+                    identificationResult.textContent = `Correspondência encontrada: ${gameState.targetOrganism.name}!`;
+                    setTimeout(showOrganismFile, 2000); // Mostra a ficha após 2 segundos
+                }, 1500);
+            }
+
+            /**
+             * Gera sequências aleatórias "semelhantes" à correta para preencher a árvore
+             * @param {string} baseSequence - A sequência correta
+             * @param {number} count - Quantas sequências gerar
+             * @returns {string[]} - Um array de sequências
+             */
+            function generateSimilarSequences(baseSequence, count) {
+                const similar = new Set();
+                const chars = ['A', 'C', 'G', 'T'];
+                while (similar.size < count) {
+                    let newSeq = baseSequence.split('');
+                    // Altera um ou dois caracteres aleatoriamente
+                    const changes = Math.random() > 0.5 ? 1 : 2;
+                    for(let i=0; i<changes; i++){
+                        const randomIndex = Math.floor(Math.random() * newSeq.length);
+                        const randomChar = chars[Math.floor(Math.random() * chars.length)];
+                        newSeq[randomIndex] = randomChar;
+                    }
+                    if (newSeq.join('') !== baseSequence) {
+                       similar.add(newSeq.join(''));
+                    }
+                }
+                return Array.from(similar);
+            }
+            
+            /**
+             * Mostra a ficha final com as informações do organismo
+             */
+            function showOrganismFile() {
+                const { name, sequence, description, image } = gameState.targetOrganism;
+                organismCard.innerHTML = `
+                    <div class="text-7xl mb-4">${image}</div>
+                    <h3 class="text-3xl font-bold text-gray-900">${name}</h3>
+                    <p class="font-mono text-lg bg-gray-200 text-indigo-700 px-4 py-2 rounded-md my-4 inline-block">${sequence}</p>
+                    <p class="text-gray-700 max-w-md">${description}</p>
+                `;
+                switchScreen('organismFile');
+            }
+
+            // --- EVENT LISTENERS ---
+            checkPuzzleBtn.addEventListener('click', checkPuzzle);
+            searchDbBtn.addEventListener('click', searchDatabase);
+            playAgainBtn.addEventListener('click', () => {
+                // Reinicia o estado do jogo e volta para o início
+                gameState = {
+                    currentScreen: 'start-screen',
+                    selectedEnvironment: null,
+                    correctSequence: '',
+                    targetOrganism: null,
+                    puzzlePieces: [],
+                };
+                initGame();
+            });
+
+            // --- INICIAR O JOGO ---
+            initGame();
+
+        });
+    </script>
+</body>
+</html>
