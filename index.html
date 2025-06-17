@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,33 +14,39 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .puzzle-piece {
             transition: all 0.3s ease-in-out;
             cursor: grab;
         }
+
         .puzzle-piece:active {
             cursor: grabbing;
             transform: scale(1.05);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+
         .placeholder {
             border: 2px dashed #cbd5e1;
             background-color: #f8fafc;
         }
     </style>
 </head>
+
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
 
-    <div id="game-container" class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10 transition-all duration-500">
+    <div id="game-container"
+        class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10 transition-all duration-500">
 
         <!-- Ecrã Inicial (Coleta) -->
         <div id="start-screen">
             <header class="text-center mb-8">
                 <div class="inline-flex items-center gap-4">
-                     <svg class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-                     </svg>
-                     <h1 class="text-3xl font-bold text-gray-900">GIB2C - Bioinformática</h1>
+                    <svg class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+                    </svg>
+                    <h1 class="text-3xl font-bold text-gray-900">GIB2C - Bioinformática</h1>
                 </div>
                 <p class="text-xl text-gray-600 mt-2">Que bicho é esse?</p>
             </header>
@@ -55,23 +62,31 @@
         <div id="puzzle-screen" class="hidden text-center">
             <h2 class="text-2xl font-semibold mb-2 text-gray-800">2. Montagem do Genoma</h2>
             <p class="text-gray-600 mb-6">Organize os fragmentos para montar a sequência de DNA.</p>
-            <div id="puzzle-container" class="flex justify-center items-center gap-2 p-4 bg-gray-50 rounded-lg mb-6 min-h-[80px]">
+            <div id="puzzle-container"
+                class="flex justify-center items-center gap-2 p-4 bg-gray-50 rounded-lg mb-6 min-h-[80px]">
                 <!-- Peças do quebra-cabeças aqui -->
             </div>
-            <div id="puzzle-slots" class="flex justify-center items-center gap-2 p-4 bg-gray-200 rounded-lg min-h-[80px]">
+            <div id="puzzle-slots"
+                class="flex justify-center items-center gap-2 p-4 bg-gray-200 rounded-lg min-h-[80px]">
                 <!-- Espaços para encaixar as peças aqui -->
             </div>
-             <button id="check-puzzle-btn" class="mt-8 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400">Verificar Sequência</button>
+            <button id="check-puzzle-btn"
+                class="mt-8 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400">Verificar
+                Sequência</button>
         </div>
 
         <!-- Ecrã de Consulta (Banco de Dados) -->
         <div id="query-screen" class="hidden text-center">
-             <h2 class="text-2xl font-semibold mb-6 text-gray-800">3. Consulta ao Banco de Dados</h2>
-             <p class="text-gray-600 mb-6">A sequência montada foi: <strong id="assembled-sequence" class="font-mono text-indigo-600"></strong></p>
-             <div class="flex flex-col items-center">
-                 <input type="text" id="sequence-input" class="w-full max-w-md text-center font-mono text-lg p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" readonly>
-                 <button id="search-db-btn" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Consultar</button>
-             </div>
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">3. Consulta ao Banco de Dados</h2>
+            <p class="text-gray-600 mb-6">A sequência montada foi: <strong id="assembled-sequence"
+                    class="font-mono text-indigo-600"></strong></p>
+            <div class="flex flex-col items-center">
+                <input type="text" id="sequence-input"
+                    class="w-full max-w-md text-center font-mono text-lg p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    readonly>
+                <button id="search-db-btn"
+                    class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Consultar</button>
+            </div>
         </div>
 
         <!-- Ecrã de Identificação (Alinhamento) -->
@@ -85,13 +100,15 @@
 
         <!-- Ecrã Final (Ficha do Organismo) -->
         <div id="organism-file-screen" class="hidden">
-             <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">5. Ficha do Organismo</h2>
-             <div id="organism-card" class="bg-gray-50 rounded-lg p-8 text-center flex flex-col items-center">
-                 <!-- Informações do organismo aqui -->
-             </div>
-             <div class="text-center mt-8">
-                 <button id="play-again-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Jogar Novamente</button>
-             </div>
+            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">5. Ficha do Organismo</h2>
+            <div id="organism-card" class="bg-gray-50 rounded-lg p-8 text-center flex flex-col items-center">
+                <!-- Informações do organismo aqui -->
+            </div>
+            <div class="text-center mt-8">
+                <button id="play-again-btn"
+                    class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Jogar
+                    Novamente</button>
+            </div>
         </div>
     </div>
 
@@ -167,7 +184,7 @@
                 if (screens[screenId]) {
                     screens[screenId].classList.remove('hidden');
                 } else {
-                     document.getElementById(screenId).classList.remove('hidden');
+                    document.getElementById(screenId).classList.remove('hidden');
                 }
                 gameState.currentScreen = screenId;
             }
@@ -176,6 +193,13 @@
              * Inicializa o jogo, preenchendo a seleção de ambientes
              */
             function initGame() {
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const sequenceFromUrl = urlParams.get('seq');
+
+
+                if (sequenceFromUrl) { console.log('Sequência carregada da URL:', sequenceFromUrl) }
+
                 environmentSelection.innerHTML = ''; // Limpa antes de adicionar
                 environments.forEach(env => {
                     const button = document.createElement('button');
@@ -196,17 +220,17 @@
                 const organisms = db[envId];
                 gameState.targetOrganism = organisms[Math.floor(Math.random() * organisms.length)];
                 gameState.correctSequence = gameState.targetOrganism.sequence;
-                
+
                 // Divide a sequência em fragmentos de 2 caracteres
                 const fragments = gameState.correctSequence.match(/.{1,2}/g);
-                
+
                 // Baralha os fragmentos
                 gameState.puzzlePieces = fragments.sort(() => Math.random() - 0.5);
 
                 setupPuzzleScreen();
                 switchScreen('puzzle');
             }
-            
+
             /**
              * Configura o ecrã do quebra-cabeças com as peças
              */
@@ -249,7 +273,7 @@
                         setTimeout(() => piece.classList.add('invisible'), 0);
                     });
                     piece.addEventListener('dragend', () => {
-                         piece.classList.remove('invisible');
+                        piece.classList.remove('invisible');
                     });
                 });
 
@@ -258,7 +282,7 @@
                         e.preventDefault(); // Necessário para permitir o drop
                         slot.classList.add('bg-indigo-100');
                     });
-                     slot.addEventListener('dragleave', () => {
+                    slot.addEventListener('dragleave', () => {
                         slot.classList.remove('bg-indigo-100');
                     });
                     slot.addEventListener('drop', (e) => {
@@ -272,9 +296,9 @@
                             const existingPiece = slot.children[0];
                             puzzleContainer.appendChild(existingPiece);
                         }
-                        
-                        if(piece) {
-                           slot.appendChild(piece);
+
+                        if (piece) {
+                            slot.appendChild(piece);
                         }
                         checkPuzzleCompletion();
                     });
@@ -300,7 +324,7 @@
                         userAnswer += slot.children[0].textContent;
                     }
                 });
-                
+
                 if (userAnswer === gameState.correctSequence) {
                     assembledSequenceEl.textContent = userAnswer;
                     sequenceInput.value = userAnswer;
@@ -309,10 +333,10 @@
                     alert('Sequência incorreta! Tente novamente.');
                 }
             }
-            
-             /**
-             * Simula a busca no banco de dados e mostra a árvore filogenética
-             */
+
+            /**
+            * Simula a busca no banco de dados e mostra a árvore filogenética
+            */
             function searchDatabase() {
                 phylogeneticTree.innerHTML = ''; // Limpa a árvore anterior
                 identificationResult.textContent = 'A alinhar sequência...';
@@ -336,7 +360,7 @@
                 phylogeneticTree.appendChild(treeEl);
 
                 switchScreen('identification');
-                
+
                 // Simula um tempo de carregamento para a identificação
                 setTimeout(() => {
                     identificationResult.textContent = `Correspondência encontrada: ${gameState.targetOrganism.name}!`;
@@ -357,18 +381,18 @@
                     let newSeq = baseSequence.split('');
                     // Altera um ou dois caracteres aleatoriamente
                     const changes = Math.random() > 0.5 ? 1 : 2;
-                    for(let i=0; i<changes; i++){
+                    for (let i = 0; i < changes; i++) {
                         const randomIndex = Math.floor(Math.random() * newSeq.length);
                         const randomChar = chars[Math.floor(Math.random() * chars.length)];
                         newSeq[randomIndex] = randomChar;
                     }
                     if (newSeq.join('') !== baseSequence) {
-                       similar.add(newSeq.join(''));
+                        similar.add(newSeq.join(''));
                     }
                 }
                 return Array.from(similar);
             }
-            
+
             /**
              * Mostra a ficha final com as informações do organismo
              */
@@ -398,10 +422,10 @@
                 initGame();
             });
 
-            // --- INICIAR O JOGO ---
             initGame();
 
         });
     </script>
 </body>
+
 </html>
