@@ -223,8 +223,8 @@
 </head>
 <body class="flex flex-col min-h-screen">
     <!-- Main Header -->
-    <header class="bg-gray-800 text-white p-4 text-center">
-        <h1 id="header-logo" class="text-2xl font-bold font-poppins cursor-pointer">GiB²C - Que bicho é esse?</h1>
+    <header class="bg-white border-2 border-grey-100 text-white p-4 text-center">
+        <h1 id="header-logo" class="text-2xl font-bold font-poppins cursor-pointer text-green-500">GiB²C - Que bicho é esse?</h1>
     </header>
 
     <!-- Main Content Area -->
@@ -439,7 +439,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white p-6 mt-auto">
+    <footer class="bg-gray-800 text-white p-2 mt-auto">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left text-sm">
             <div class="mb-4 md:mb-0">
                 <h3 class="text-xl font-bold font-poppins mb-1">GiB²C - UFF</h3>
@@ -466,7 +466,7 @@
                 </div>
             </div>
         </div>
-        <div class="mt-6 text-center text-xs text-gray-500">
+        <div class="mt-6 text-center text-xs text-gray-400">
             <p> GiB²C - UFF | Ferramenta desenvolvida para fins educacionais.</p>
         </div>
     </footer>
@@ -537,7 +537,7 @@
                     geneticFeatures: "Possui um genoma complexo que contribui para sua inteligência, camuflagem e sistema nervoso avançado.",
                     taxonomy: { kingdom: "Animalia", phylum: "Mollusca", class: "Cephalopoda", order: "Octopoda", family: "Octopodidae", genus: "Octopus", species: "O. vulgaris" },
                     curiosity: "Têm três corações: dois bombeiam sangue para as brânquias, e um terceiro circula o sangue para o resto do corpo.",
-                    image: "https://placehold.co/200x200/90CAF9/FFFFFF?text=Polvo"
+                    image: "Images/Animals/Marinhos/Polvo-comum.png"
                 },
                 {
                     id: "cavalomarinho1", sequence: "TAGCTAGTAGTA", name: "Cavalo-marinho", scientificName: "Hippocampus hippocampus",
@@ -586,15 +586,6 @@
                 }
             ],
             "ambienteSolo": [
-                {
-                    id: "ovelha1", sequence: "AACGTCATCCGGTACTGGTCATAGCAATGCTAGGC", name: "Ovelha doméstica", scientificName: "Ovis aries",
-                    description: "A ovelha doméstica (Ovis aries) é um mamífero ruminante herbívoro, que foi domesticado há aproximadamente 10.000 anos. É um animal de médio porte, coberto por uma espessa camada de lã que serve como isolante térmico. Elas são criadas principalmente por sua lã, carne e leite.",
-                    habitat: "Originalmente nativas da Ásia e Europa, as ovelhas foram introduzidas em todos os continentes, exceto a Antártida. Adaptam-se bem a diversos ambientes, desde planícies até regiões montanhosas, mas preferem pastagens abertas.",
-                    geneticFeatures: "O genoma da ovelha doméstica contém 27 pares de cromossomos. Seu DNA possui sequências específicas que a distinguem de outros animais, mesmo daqueles evolutivamente próximos, como cabras e bovinos. A análise genética ajuda a entender suas características de produção e resistência a doenças.",
-                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Artiodactyla", family: "Bovidae", genus: "Ovis", species: "O. aries" },
-                    curiosity: "As ovelhas têm uma visão periférica de aproximadamente 270 a 320 graus, permitindo que vejam atrás de si sem virar a cabeça! Além disso, possuem um estômago dividido em quatro compartimentos que lhes permite digerir alimentos que outros animais não conseguem.",
-                    image: "https://placehold.co/200x200/F5F5DC/000000?text=Ovelha"
-                },
                 {
                     id: "minhoca1", sequence: "CCTGATGCCTAG", name: "Minhoca-da-terra", scientificName: "Lumbricus terrestris",
                     description: "Um invertebrado segmentado que vive no solo, essencial para a saúde do ecossistema.",
@@ -665,7 +656,7 @@
                     geneticFeatures: "Seu genoma contém os genes responsáveis pela produção de suas neurotoxinas potentes.",
                     taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Arachnida", order: "Araneae", family: "Atracidae", genus: "Atrax", species: "A. robustus" },
                     curiosity: "É uma das aranhas mais perigosas do mundo, mas um antiveneno eficaz foi desenvolvido na Austrália.",
-                    image: "https://placehold.co/200x200/FFCC80/000000?text=Aranha"
+                    image: "Images/Animals/Solo/Aranha.png"
                 },
                 {
                     id: "coelho1", sequence: "GGCTAGCTATAG", name: "Coelho-europeu", scientificName: "Oryctolagus cuniculus",
@@ -712,7 +703,7 @@
                     geneticFeatures: "Genoma com adaptações para a visão reduzida e maior sensibilidade a vibrações.",
                     taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Arachnida", order: "Araneae", family: "Tetragnathidae", genus: "Meta", species: "M. menardi" },
                     curiosity: "Seus olhos são pequenos e pouco desenvolvidos, mas suas pernas longas e sensíveis a ajudam a detectar presas no escuro total.",
-                    image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Aranha+Caverna"
+                    image: "Images/Animals/Solo/Aranha.png"
                 },
                 {
                     id: "griloCaverna1", sequence: "GCATGCATGCAT", name: "Grilo-de-caverna", scientificName: "Ceuthophilus stygius",
@@ -770,6 +761,15 @@
                 }
             ],
             "ambienteFloresta": [
+                {
+                    id: "ovelha1", sequence: "AACGTCATCCGGTACTGGTCATAGCAATGCTAGGC", name: "Ovelha doméstica", scientificName: "Ovis aries",
+                    description: "A ovelha doméstica (Ovis aries) é um mamífero ruminante herbívoro, que foi domesticado há aproximadamente 10.000 anos. É um animal de médio porte, coberto por uma espessa camada de lã que serve como isolante térmico. Elas são criadas principalmente por sua lã, carne e leite.",
+                    habitat: "Originalmente nativas da Ásia e Europa, as ovelhas foram introduzidas em todos os continentes, exceto a Antártida. Adaptam-se bem a diversos ambientes, desde planícies até regiões montanhosas, mas preferem pastagens abertas.",
+                    geneticFeatures: "O genoma da ovelha doméstica contém 27 pares de cromossomos. Seu DNA possui sequências específicas que a distinguem de outros animais, mesmo daqueles evolutivamente próximos, como cabras e bovinos. A análise genética ajuda a entender suas características de produção e resistência a doenças.",
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Mammalia", order: "Artiodactyla", family: "Bovidae", genus: "Ovis", species: "O. aries" },
+                    curiosity: "As ovelhas têm uma visão periférica de aproximadamente 270 a 320 graus, permitindo que vejam atrás de si sem virar a cabeça! Além disso, possuem um estômago dividido em quatro compartimentos que lhes permite digerir alimentos que outros animais não conseguem.",
+                    image: "Images/Animals/Floresta/ovelha.png"
+                },
                 {
                     id: "onca1", sequence: "TGCATGCTAGCA", name: "Onça-pintada", scientificName: "Panthera onca",
                     description: "O maior felino das Américas, conhecido por sua pelagem manchada e sua força de mordida excepcional.",
@@ -858,7 +858,7 @@
                     geneticFeatures: "Seu genoma revela genes relacionados à visão de alta acuidade e força muscular para voo e caça.",
                     taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Aves", order: "Accipitriformes", family: "Accipitridae", genus: "Aquila", species: "A. chrysaetos" },
                     curiosity: "É capaz de ver uma lebre a mais de 3 km de distância e pode voar em altitudes muito elevadas.",
-                    image: "Images/Animals/Floresta/ovelha.png" // Placeholder image URL, update as needed
+                    image: "Images/Animals/Floresta/Águia-real.png" 
                 }
             ]
         };
@@ -973,7 +973,7 @@
             document.getElementById('display-sequence').textContent = formatSequence(sequence);
             const progressBar = document.getElementById('sequence-display-progress');
             const timerText = document.getElementById('sequence-display-timer-text');
-            const duration = 10; // seconds
+            const duration = 15; // seconds
             let timeLeft = duration;
             progressBar.style.width = '0%';
             timerText.textContent = `Tempo restante: ${timeLeft} segundos`;
