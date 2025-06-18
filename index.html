@@ -93,7 +93,7 @@
             background-color: #E0E0E0;
             padding: 0.5rem 0.75rem;
             border-radius: 0.5rem;
-            cursor: grab;
+            cursor: pointer; /* Changed from grab to pointer */
             margin: 0.25rem;
             user-select: none;
             transition: background-color 0.2s;
@@ -106,6 +106,10 @@
         }
         .dna-block.incorrect {
             background-color: #FFCDD2; /* Light red for incorrect */
+        }
+        .dna-block.placed { /* New class for blocks in target area */
+            background-color: #D1E7DD; /* Light green-ish to show it's placed */
+            cursor: pointer;
         }
         .dna-target-area {
             min-height: 80px;
@@ -125,8 +129,9 @@
             border-radius: 0.75rem;
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
             font-size: 0.9rem;
-            white-space: pre-wrap;
+            white-space: 'preserve nowrap';
             word-break: break-all;
+            text-align: left;
         }
         .terminal-box .prompt {
             color: #C5E1A5; /* Light green */
@@ -276,14 +281,14 @@
             <p class="text-gray-600 mb-8 text-center max-w-2xl">Observe e tente memorizar a sequência para o próximo passo!</p>
             <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl flex flex-col items-center">
                 <div class="terminal-box w-full mb-6">
-                    <span class="prompt">$ sequencia_dna.txt</span>
+                    <span class="prompt">$ Analisando sequencia...</span>
                     <br>
                     <span id="display-sequence" class="output text-xl md:text-2xl font-bold tracking-wide"></span>
                 </div>
                 <div class="progress-bar-container w-full">
                     <div id="sequence-display-progress" class="progress-bar-fill"></div>
                 </div>
-                <p id="sequence-display-timer-text" class="text-gray-600 mt-4">Tempo restante: 5 segundos</p>
+                <p id="sequence-display-timer-text" class="text-gray-600 mt-4 text-center">Tempo restante: 5 segundos</p> <!-- Added text-center -->
             </div>
         </div>
 
@@ -293,9 +298,7 @@
             <p class="text-gray-600 mb-8 text-center max-w-2xl">Nosso sequenciador está lendo o código genético do seu organismo.</p>
 
             <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl flex flex-col md:flex-row items-center md:justify-around">
-                <!-- <img src="https://placehold.co/200x200/F5F5DC/000000?text=Ovelha" alt="Ovelha" class="w-48 h-48 object-contain mr-0 md:mr-8 mb-6 md:mb-0 rounded-lg"> -->
                 <div class="flex flex-col items-center w-full md:w-auto">
-                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150"><path fill="none" stroke="#2EE020" stroke-width="12" stroke-linecap="round" stroke-dasharray="300 385" stroke-dashoffset="0" d="M275 75c0 31-27 50-50 50-58 0-92-100-150-100-28 0-50 22-50 50s23 50 50 50c58 0 92-100 150-100 24 0 50 19 50 50Z"><animate attributeName="stroke-dashoffset" calcMode="spline" dur="2" values="685;-685" keySplines="0 0 1 1" repeatCount="indefinite"></animate></path></svg> -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone text-gray-400 mb-6"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                     <p class="text-lg text-gray-700 mb-4 text-center">O sequenciador está coletando informações genéticas do seu organismo...</p>
                     <div class="progress-bar-container w-full md:w-80">
@@ -309,15 +312,15 @@
         <!-- Screen: Genome Assembly (Puzzle) -->
         <div id="screen-genome-assembly" class="screen hidden flex flex-col items-center justify-center w-full p-4 md:p-8">
             <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Montando o Genoma</h2>
-            <p class="text-gray-600 mb-8 text-center max-w-2xl">O código genético do seu organismo foi revelado! Arraste os blocos na ordem correta para montar a sequência.</p>
+            <p class="text-gray-600 mb-8 text-center max-w-2xl">O código genético do seu organismo foi revelado! Clique nos blocos na ordem correta para montar a sequência.</p>
 
             <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl flex flex-col items-center">
                 <div class="terminal-box w-full mb-6">
-                    <span class="prompt">$ sequencia_dna.txt</span>
+                    <span class="prompt">$ Analisando sequencia...</span>
+                    <br>
+                    <span class="prompt">$ iniciando montagem genoma...</span>
                     <br>
                     <span id="original-sequence-display" class="output text-xl md:text-2xl font-bold tracking-wide hidden"></span>
-                    <br>
-                    <span class="prompt">$ iniciando_montagem_genoma...</span>
                 </div>
 
                 <button id="btn-show-sequence" class="btn btn-secondary mb-4">
@@ -326,9 +329,9 @@
                 </button>
 
                 <div class="w-full mb-6 p-4 border-2 border-dashed border-gray-400 rounded-xl bg-gray-50">
-                    <p class="text-gray-700 font-semibold mb-2 text-center">Arraste os blocos aqui:</p>
+                    <p class="text-gray-700 font-semibold mb-2 text-center">Monte a sequência aqui:</p>
                     <div id="dna-target-area" class="dna-target-area w-full flex flex-wrap justify-center items-center p-2 bg-white rounded-lg min-h-[100px]">
-                        <!-- Dragged DNA blocks will appear here -->
+                        <!-- Clicked DNA blocks will appear here -->
                     </div>
                 </div>
 
@@ -386,9 +389,9 @@
             <h2 class="text-3xl font-bold text-gray-800 mb-4 font-poppins text-center">Ficha de Identificação</h2>
             <p class="text-gray-600 mb-8 text-center max-w-2xl">Bicho identificado! Conheça mais sobre este organismo.</p>
 
+            <h3 id="card-animal-name" class="text-2xl font-bold text-white bg-blue-500 p-3 rounded-t-lg rounded-b-md mb-4"></h3>
             <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2">
-                    <h3 id="card-animal-name" class="text-2xl font-bold text-white bg-blue-500 p-3 rounded-t-lg rounded-b-md mb-4"></h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg">
                             <img id="card-animal-image" src="" alt="Animal Image" class="w-full h-auto max-h-64 object-contain rounded-lg">
@@ -430,7 +433,7 @@
                 </div>
             </div>
         </div>
-        <button id="btn-identify-another" class="btn btn-primary mt-8 px-6 py-3 text-lg">Identificar outro bicho <svg height="200px" width="200px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 303.597 303.597" xml:space="preserve" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path style="fill:#ffffff;" d="M57.866,268.881c25.982,19.891,56.887,30.403,89.369,30.402h0.002c6.545,0,13.176-0.44,19.707-1.308 c39.055-5.187,73.754-25.272,97.702-56.557c14.571-19.033,24.367-41.513,28.329-65.01c0.689-4.084-2.064-7.954-6.148-8.643 l-19.721-3.326c-1.964-0.33-3.974,0.131-5.595,1.284c-1.621,1.153-2.717,2.902-3.048,4.864 c-3.019,17.896-10.49,35.032-21.608,49.555c-18.266,23.861-44.73,39.181-74.521,43.137c-4.994,0.664-10.061,1-15.058,1 c-24.757,0-48.317-8.019-68.137-23.191c-23.86-18.266-39.18-44.73-43.136-74.519c-3.957-29.787,3.924-59.333,22.189-83.194 c21.441-28.007,54.051-44.069,89.469-44.069c24.886,0,48.484,7.996,68.245,23.122c6.55,5.014,12.43,10.615,17.626,16.754 l-36.934-6.52c-1.956-0.347-3.973,0.101-5.604,1.241c-1.631,1.141-2.739,2.882-3.085,4.841l-3.477,19.695 c-0.72,4.079,2.003,7.969,6.081,8.689l88.63,15.647c0.434,0.077,0.869,0.114,1.304,0.114c1.528,0,3.031-0.467,4.301-1.355 c1.63-1.141,2.739-2.882,3.084-4.841l15.646-88.63c0.721-4.079-2.002-7.969-6.081-8.69l-19.695-3.477 c-4.085-0.723-7.97,2.003-8.689,6.082l-6.585,37.3c-7.387-9.162-15.87-17.463-25.248-24.642 c-25.914-19.838-56.86-30.324-89.495-30.324c-46.423,0-89.171,21.063-117.284,57.787C6.454,93.385-3.878,132.123,1.309,171.178 C6.497,210.236,26.583,244.933,57.866,268.881z"></path> </g></svg></button>
+        <button id="btn-identify-another" class="btn btn-primary mt-8 px-6 py-3 text-lg">Identificar outro bicho</button>
     </div>
 
     </main>
@@ -448,11 +451,13 @@
                     <ul>
                         <li>
                             <a href="https://gib2c.uff.br/" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 inline-flex items-center mb-1">
+                                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link ml-1"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg> -->
                                 Equipe
                             </a>
                         </li>
                         <li>
                             <a href="https://www.instagram.com/gib2c/" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 inline-flex items-center mb-1">
+                                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram ml-1"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg> -->
                                 Instagram
                             </a>
                         </li>
@@ -472,7 +477,7 @@
             <button class="modal-close-btn" id="modal-close-btn">&times;</button>
             <h3 class="text-2xl font-bold font-poppins mb-4 text-gray-800">Política de Privacidade</h3>
             <p class="text-gray-700 text-sm text-justify">
-                &nbsp;Esta aplicação, "GiB²C - UFF:  Que bicho é esse?", foi desenvolvida exclusivamente com <b>fins educacionais e de demonstração</b>.
+                &nbsp;Esta aplicação, "GiB²C - UFF: Que bicho é esse?", foi desenvolvida exclusivamente com <b>fins educacionais e de demonstração</b>.
                 Não coletamos, armazenamos ou processamos quaisquer dados pessoais dos usuários.
             </p>
             <br>
@@ -705,7 +710,7 @@
                     description: "Uma aranha grande e escura que vive em ambientes úmidos e escuros, como cavernas e túneis.",
                     habitat: "Cavernas, minas e outras formações subterrâneas na Europa e América do Norte.",
                     geneticFeatures: "Genoma com adaptações para a visão reduzida e maior sensibilidade a vibrações.",
-                    taxonomy: { kingdom: "Animalia", phylum: "Arthropoda", class: "Arachnida", order: "Araneae", family: "Tetragnathidae", genus: "Meta", species: "M. menardi" },
+                    taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Arachnida", order: "Araneae", family: "Tetragnathidae", genus: "Meta", species: "M. menardi" },
                     curiosity: "Seus olhos são pequenos e pouco desenvolvidos, mas suas pernas longas e sensíveis a ajudam a detectar presas no escuro total.",
                     image: "https://placehold.co/200x200/A1887F/FFFFFF?text=Aranha+Caverna"
                 },
@@ -853,7 +858,7 @@
                     geneticFeatures: "Seu genoma revela genes relacionados à visão de alta acuidade e força muscular para voo e caça.",
                     taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Aves", order: "Accipitriformes", family: "Accipitridae", genus: "Aquila", species: "A. chrysaetos" },
                     curiosity: "É capaz de ver uma lebre a mais de 3 km de distância e pode voar em altitudes muito elevadas.",
-                    image: "Images/Animals/Floresta/ovelha.png"
+                    image: "Images/Animals/Floresta/ovelha.png" // Placeholder image URL, update as needed
                 }
             ]
         };
@@ -968,7 +973,7 @@
             document.getElementById('display-sequence').textContent = formatSequence(sequence);
             const progressBar = document.getElementById('sequence-display-progress');
             const timerText = document.getElementById('sequence-display-timer-text');
-            const duration = 20; // seconds
+            const duration = 10; // seconds
             let timeLeft = duration;
             progressBar.style.width = '0%';
             timerText.textContent = `Tempo restante: ${timeLeft} segundos`;
@@ -987,7 +992,7 @@
                     showScreen('sequencing');
                     startSequencingProcess(); // Start the sequencing animation
                 }
-            }, 200);
+            }, 150);
         }
 
         // Screen: Sequencing the DNA
@@ -1005,7 +1010,7 @@
                     clearInterval(interval);
                     nextButton.classList.remove('hidden'); // Show button when complete
                 }
-            }, 200); // Adjust interval for desired speed
+            }, 25); // Adjust interval for desired speed
 
             nextButton.onclick = () => {
                 showScreen('genomeAssembly');
@@ -1017,6 +1022,51 @@
         let originalSequenceBlocks = [];
         let assembledBlocks = [];
         let sequenceDisplayTimeout = null; // To clear timeout if needed
+
+        // Event handler for clicking DNA blocks (both source and target)
+        function handleDnaBlockClick(event) {
+            const clickedBlock = event.target;
+            const blockValue = clickedBlock.textContent;
+            const originalIndex = parseInt(clickedBlock.dataset.originalIndex);
+
+            const sourceArea = document.getElementById('dna-blocks-source');
+            const targetArea = document.getElementById('dna-target-area');
+
+            if (clickedBlock.parentElement === sourceArea) {
+                // Move from source to target
+                if (targetArea.querySelector('p')) { // Remove placeholder if exists
+                    targetArea.innerHTML = '';
+                }
+                targetArea.appendChild(clickedBlock);
+                assembledBlocks.push(blockValue); // Add to assembled blocks
+                clickedBlock.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+                clickedBlock.classList.add('bg-gray-100', 'dna-block-placed'); // Indicate it's placed
+                clickedBlock.classList.add('placed'); // Add new class for styling
+            } else if (clickedBlock.parentElement === targetArea) {
+                // Move from target back to source
+                sourceArea.appendChild(clickedBlock); // Append first, then reorder
+                
+                // Remove from assembledBlocks
+                const indexToRemove = assembledBlocks.indexOf(blockValue);
+                if (indexToRemove > -1) {
+                    assembledBlocks.splice(indexToRemove, 1);
+                }
+
+                clickedBlock.classList.remove('bg-gray-100', 'dna-block-placed', 'placed', 'correct', 'incorrect'); // Clear placed/feedback styles
+                clickedBlock.classList.add('bg-gray-200', 'hover:bg-gray-300');
+
+                // Reorder blocks in source area based on original index
+                const sourceBlocks = Array.from(sourceArea.children);
+                sourceBlocks.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
+                sourceBlocks.forEach(block => sourceArea.appendChild(block)); // Re-append in sorted order
+
+                if (targetArea.children.length === 0) { // Add placeholder back if target area is empty
+                    targetArea.innerHTML = '<p class="text-gray-400 text-center text-sm">Monte a sequência aqui:</p>';
+                }
+            }
+            // Update assembledBlocks to reflect current state of targetArea
+            assembledBlocks = Array.from(targetArea.querySelectorAll('.dna-block')).map(block => block.textContent);
+        }
 
         function setupGenomeAssemblyPuzzle(sequence) {
             const sequenceDiv = document.getElementById('original-sequence-display');
@@ -1031,50 +1081,21 @@
 
             shuffledBlocks.forEach((block, index) => {
                 const dnaBlock = document.createElement('div');
-                dnaBlock.classList.add('dna-block', 'px-3', 'py-2', 'rounded-lg', 'bg-gray-200', 'cursor-grab', 'hover:bg-gray-300', 'transition-colors', 'select-none');
+                dnaBlock.classList.add('dna-block', 'px-3', 'py-2', 'rounded-lg', 'bg-gray-200', 'hover:bg-gray-300', 'transition-colors', 'select-none');
                 dnaBlock.textContent = block;
-                dnaBlock.setAttribute('draggable', true);
-                dnaBlock.id = `block-${index}`;
+                dnaBlock.dataset.originalIndex = index; // Store original index
+                dnaBlock.id = `block-${index}`; // Keep ID for reference
                 sourceArea.appendChild(dnaBlock);
 
-                // Drag events for source blocks
-                dnaBlock.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', e.target.id);
-                    e.dataTransfer.effectAllowed = 'move';
-                });
+                dnaBlock.addEventListener('click', handleDnaBlockClick); // Add click listener
             });
 
             const targetArea = document.getElementById('dna-target-area');
-            targetArea.innerHTML = '<p class="text-gray-400 text-center text-sm">Arraste os blocos de DNA aqui na ordem correta.</p>'; // Placeholder
+            targetArea.innerHTML = '<p class="text-gray-400 text-center text-sm">Monte a sequência aqui:</p>'; // Placeholder
             targetArea.classList.remove('border-green-500', 'border-red-500'); // Reset border color
-
-            // Drop events for target area
-            targetArea.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Allow drop
-                e.dataTransfer.dropEffect = 'move';
-                targetArea.classList.add('border-blue-500'); // Visual feedback on drag over
-            });
-            targetArea.addEventListener('dragleave', () => {
-                targetArea.classList.remove('border-blue-500');
-            });
-            targetArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                targetArea.classList.remove('border-blue-500');
-                const id = e.dataTransfer.getData('text/plain');
-                const draggedElement = document.getElementById(id);
-
-                if (draggedElement && draggedElement.parentElement === sourceArea) {
-                    if (targetArea.querySelector('p')) { // Remove placeholder if exists
-                        targetArea.innerHTML = '';
-                    }
-                    targetArea.appendChild(draggedElement);
-                    assembledBlocks.push(draggedElement.textContent);
-                    // Update classes for visual feedback if needed
-                    draggedElement.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-                    draggedElement.classList.add('bg-gray-100', 'cursor-default'); // Make it look "placed"
-                    draggedElement.removeAttribute('draggable');
-                }
-            });
+            
+            // Remove previous click handlers from target area and its children if any
+            targetArea.removeEventListener('click', handleDnaBlockClick); // If any direct listener was added
 
             document.getElementById('btn-check-assembly').onclick = checkGenomeAssembly;
             document.getElementById('btn-assembly-next').classList.add('hidden');
