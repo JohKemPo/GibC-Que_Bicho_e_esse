@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioINFO: Que bicho é esse?</title>
+    <link rel="icon" type="image/x-icon" href="svgs/G.svg" />
+    <title>GiB²C - Que bicho é esse?</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts - Inter for general text, Poppins for titles if desired -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght=600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -71,6 +72,14 @@
         .btn:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #d4d4d4;
+            transform: translateY(-2px);
         }
 
         /* Specific colors for environment cards */
@@ -145,6 +154,39 @@
             transition: width 0.5s ease-out; /* Smooth transition for visual effect */
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #555;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .grid-cols-2 {
@@ -161,13 +203,23 @@
             .container {
                 padding: 1rem;
             }
+            .dna-block {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+            .terminal-box {
+                font-size: 0.8rem;
+            }
+            .modal-content {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
     <!-- Main Header -->
     <header class="bg-gray-800 text-white p-4 text-center">
-        <h1 class="text-2xl font-bold font-poppins">BioINFO: Que bicho é esse?</h1>
+        <h1 id="header-logo" class="text-2xl font-bold font-poppins cursor-pointer">GiB²C - Que bicho é esse?</h1>
     </header>
 
     <!-- Main Content Area -->
@@ -179,29 +231,27 @@
             <p class="text-gray-600 mb-8 text-center max-w-2xl">Selecione o ambiente de onde sua amostra foi coletada para iniciarmos o processo de identificação.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-                <div class="card card-marine" data-environment="marine">
+                <div class="card card-marine" data-environment="ambienteMarinho">
                     <div class="icon-circle bg-blue-300">🐟</div>
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Organismos marinhos</h3>
                     <p class="text-gray-500 text-sm">Peixes, algas, crustáceos e outros seres que vivem em ambientes aquáticos.</p>
                 </div>
-                <div class="card card-soil" data-environment="soil">
+                <div class="card card-soil" data-environment="ambienteSolo">
                     <div class="icon-circle bg-orange-300">🌱</div>
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Organismos que vivem no solo</h3>
                     <p class="text-gray-500 text-sm">Minhocas, insetos, fungos e outros seres que habitam o ambiente terrestre.</p>
                 </div>
-                <div class="card card-cave" data-environment="cave">
+                <div class="card card-cave" data-environment="ambienteCavernaFossil">
                     <div class="icon-circle bg-stone-500">🦴</div>
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Seres cavernícolas e fósseis</h3>
                     <p class="text-gray-500 text-sm">Organismos adaptados à vida em cavernas ou restos fossilizados.</p>
                 </div>
-                <div class="card card-forest" data-environment="forest">
+                <div class="card card-forest" data-environment="ambienteFloresta">
                     <div class="icon-circle bg-green-300">🌳</div>
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Organismos que vivem em florestas</h3>
                     <p class="text-gray-500 text-sm">Mamíferos, aves, répteis e outros seres que habitam ambientes florestais.</p>
                 </div>
             </div>
-            <!-- The 'Próximo passo' button is commented out as per new flow -->
-            <!-- <button id="btn-home-next" class="btn btn-primary mt-8 px-6 py-3 text-lg hidden">Próximo passo →</button> -->
         </div>
 
         <!-- Screen: Scan QR -->
@@ -214,6 +264,10 @@
                 <p class="text-sm text-gray-500 mt-2">A sequência será carregada automaticamente via URL.</p>
             </div>
             <p class="text-gray-500 text-xs mt-6 text-center max-w-md">Exemplo de URL do QR Code: `https://[seu-usuario].github.io/[seu-repo]/?seq=AACGTCATCCGG`</p>
+            <button id="btn-back-to-home" class="btn btn-secondary mt-8 px-6 py-3 text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left inline-block mr-2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                Voltar à Tela Principal
+            </button>
         </div>
 
         <!-- Screen: Sequence Display (Temporary) -->
@@ -239,8 +293,9 @@
             <p class="text-gray-600 mb-8 text-center max-w-2xl">Nosso sequenciador está lendo o código genético do seu organismo.</p>
 
             <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl flex flex-col md:flex-row items-center md:justify-around">
-                <img src="https://placehold.co/200x200/F5F5DC/000000?text=Ovelha" alt="Ovelha" class="w-48 h-48 object-contain mr-0 md:mr-8 mb-6 md:mb-0 rounded-lg">
+                <!-- <img src="https://placehold.co/200x200/F5F5DC/000000?text=Ovelha" alt="Ovelha" class="w-48 h-48 object-contain mr-0 md:mr-8 mb-6 md:mb-0 rounded-lg"> -->
                 <div class="flex flex-col items-center w-full md:w-auto">
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150"><path fill="none" stroke="#2EE020" stroke-width="12" stroke-linecap="round" stroke-dasharray="300 385" stroke-dashoffset="0" d="M275 75c0 31-27 50-50 50-58 0-92-100-150-100-28 0-50 22-50 50s23 50 50 50c58 0 92-100 150-100 24 0 50 19 50 50Z"><animate attributeName="stroke-dashoffset" calcMode="spline" dur="2" values="685;-685" keySplines="0 0 1 1" repeatCount="indefinite"></animate></path></svg> -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone text-gray-400 mb-6"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                     <p class="text-lg text-gray-700 mb-4 text-center">O sequenciador está coletando informações genéticas do seu organismo...</p>
                     <div class="progress-bar-container w-full md:w-80">
@@ -260,10 +315,15 @@
                 <div class="terminal-box w-full mb-6">
                     <span class="prompt">$ sequencia_dna.txt</span>
                     <br>
-                    <span id="original-sequence-display" class="output text-xl md:text-2xl font-bold tracking-wide"></span>
+                    <span id="original-sequence-display" class="output text-xl md:text-2xl font-bold tracking-wide hidden"></span>
                     <br>
                     <span class="prompt">$ iniciando_montagem_genoma...</span>
                 </div>
+
+                <button id="btn-show-sequence" class="btn btn-secondary mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye inline-block mr-2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Consultar Sequência (3s)
+                </button>
 
                 <div class="w-full mb-6 p-4 border-2 border-dashed border-gray-400 rounded-xl bg-gray-50">
                     <p class="text-gray-700 font-semibold mb-2 text-center">Arraste os blocos aqui:</p>
@@ -298,25 +358,9 @@
             <p class="text-gray-600 mb-8 text-center max-w-2xl">Hora de descobrir quem é seu bicho!</p>
 
             <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl flex flex-col items-center">
-                <div class="w-full mb-6">
-                    <label for="dna-sequence-input" class="block text-gray-700 font-semibold mb-2">
-                        <span class="inline-flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database text-gray-500 mr-2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 12a9 3 0 0 0 18 0"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/></svg>
-                            Banco de Dados Genômico
-                        </span>
-                    </label>
-                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                        <input type="text" id="dna-sequence-input" class="flex-grow p-3 focus:outline-none text-gray-700 text-lg" placeholder="Digite ou cole a sequência de DNA:" readonly>
-                        <button id="btn-search-db" class="bg-green-500 text-white p-3 h-full flex items-center justify-center hover:bg-green-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                            <span class="ml-2 hidden sm:inline">Buscar</span>
-                        </button>
-                    </div>
-                </div>
-
                 <div id="db-processing-area" class="w-full min-h-[150px] bg-gray-50 rounded-xl p-6 flex flex-col items-center justify-center text-center text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database text-gray-400 mb-4"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 12a9 3 0 0 0 18 0"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/></svg>
-                    <p id="db-status-text" class="text-lg">Aguardando entrada de sequência para iniciar a busca...</p>
+                    <p id="db-status-text" class="text-lg">Iniciando a busca no banco de dados genômico...</p>
                     <p class="text-sm mt-2">O sistema irá comparar sua sequência com milhares de registros em nosso banco de dados.</p>
                 </div>
             </div>
@@ -379,15 +423,15 @@
                         <div class="flex items-center mb-2">
                             <svg class="h-6 w-6 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-12a1 1 0 102 0V7a1 1 0 10-2 0v-1zm1 4a1 1 0 100 2h.01a1 1 0 100-2H10z" clip-rule="evenodd"></path>
-                            </svg>
-                            <p class="font-bold">Curiosidade</p>
-                        </div>
-                        <p id="card-curiosity" class="text-sm"></p>
+                        </svg>
+                        <p class="font-bold">Curiosidade</p>
                     </div>
+                    <p id="card-curiosity" class="text-sm"></p>
                 </div>
             </div>
-            <button id="btn-identify-another" class="btn btn-primary mt-8 px-6 py-3 text-lg">Identificar outro bicho <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-redo2 inline-block ml-2"><path d="M9 14.24V19H4.76a2 2 0 0 1-1.89-2.66l2.32-8.63A2 2 0 0 1 7.22 5h9.56a2 2 0 0 1 1.89 2.66l2.32 8.63A2 2 0 0 1 19.24 19H14v-4.76"/></svg></button>
         </div>
+        <button id="btn-identify-another" class="btn btn-primary mt-8 px-6 py-3 text-lg">Identificar outro bicho <svg height="200px" width="200px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 303.597 303.597" xml:space="preserve" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path style="fill:#ffffff;" d="M57.866,268.881c25.982,19.891,56.887,30.403,89.369,30.402h0.002c6.545,0,13.176-0.44,19.707-1.308 c39.055-5.187,73.754-25.272,97.702-56.557c14.571-19.033,24.367-41.513,28.329-65.01c0.689-4.084-2.064-7.954-6.148-8.643 l-19.721-3.326c-1.964-0.33-3.974,0.131-5.595,1.284c-1.621,1.153-2.717,2.902-3.048,4.864 c-3.019,17.896-10.49,35.032-21.608,49.555c-18.266,23.861-44.73,39.181-74.521,43.137c-4.994,0.664-10.061,1-15.058,1 c-24.757,0-48.317-8.019-68.137-23.191c-23.86-18.266-39.18-44.73-43.136-74.519c-3.957-29.787,3.924-59.333,22.189-83.194 c21.441-28.007,54.051-44.069,89.469-44.069c24.886,0,48.484,7.996,68.245,23.122c6.55,5.014,12.43,10.615,17.626,16.754 l-36.934-6.52c-1.956-0.347-3.973,0.101-5.604,1.241c-1.631,1.141-2.739,2.882-3.085,4.841l-3.477,19.695 c-0.72,4.079,2.003,7.969,6.081,8.689l88.63,15.647c0.434,0.077,0.869,0.114,1.304,0.114c1.528,0,3.031-0.467,4.301-1.355 c1.63-1.141,2.739-2.882,3.084-4.841l15.646-88.63c0.721-4.079-2.002-7.969-6.081-8.69l-19.695-3.477 c-4.085-0.723-7.97,2.003-8.689,6.082l-6.585,37.3c-7.387-9.162-15.87-17.463-25.248-24.642 c-25.914-19.838-56.86-30.324-89.495-30.324c-46.423,0-89.171,21.063-117.284,57.787C6.454,93.385-3.878,132.123,1.309,171.178 C6.497,210.236,26.583,244.933,57.866,268.881z"></path> </g></svg></button>
+    </div>
 
     </main>
 
@@ -395,35 +439,54 @@
     <footer class="bg-gray-800 text-white p-6 mt-auto">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left text-sm">
             <div class="mb-4 md:mb-0">
-                <h3 class="text-xl font-bold font-poppins mb-1">BIOINFO.</h3>
+                <h3 class="text-xl font-bold font-poppins mb-1">GiB²C - UFF</h3>
                 <p>Ferramenta educacional para identificação de espécies</p>
             </div>
-            <div class="grid grid-cols-2 gap-4 md:gap-8">
-                <div>
-                    <h4 class="font-bold mb-2">Recursos</h4>
-                    <ul>
-                        <li><a href="#" class="hover:text-gray-300">Tutoriais</a></li>
-                        <li><a href="#" class="hover:text-gray-300">Banco de dados</a></li>
-                        <li><a href="#" class="hover:text-gray-300">Glossário</a></li>
-                    </ul>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-8">
                 <div>
                     <h4 class="font-bold mb-2">Sobre</h4>
                     <ul>
-                        <li><a href="#" class="hover:text-gray-300">Equipe</a></li>
-                        <li><a href="#" class="hover:text-gray-300">Contato</a></li>
-                        <li><a href="#" class="hover:text-gray-300">Política de privacidade</a></li>
+                        <li>
+                            <a href="https://gib2c.uff.br/" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 inline-flex items-center mb-1">
+                                Equipe
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.instagram.com/gib2c/" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 inline-flex items-center mb-1">
+                                Instagram
+                            </a>
+                        </li>
+                        <li><a href="#" id="privacy-policy-link" class="hover:text-gray-300 mb-1">Política de privacidade</a></li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="mt-6 text-center text-xs text-gray-500">
-            <p>&copy; 2023 BIOINFO - Todos os direitos reservados. Ferramenta desenvolvida para fins educacionais.</p>
+            <p> GiB²C - UFF | Ferramenta desenvolvida para fins educacionais.</p>
         </div>
     </footer>
 
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+            <h3 class="text-2xl font-bold font-poppins mb-4 text-gray-800">Política de Privacidade</h3>
+            <p class="text-gray-700 text-sm text-justify">
+                &nbsp;Esta aplicação, "GiB²C - UFF:  Que bicho é esse?", foi desenvolvida exclusivamente com <b>fins educacionais e de demonstração</b>.
+                Não coletamos, armazenamos ou processamos quaisquer dados pessoais dos usuários.
+            </p>
+            <br>
+            <p class="text-gray-700 text-sm text-justify">
+                &nbsp;Toda a interação ocorre localmente no seu navegador e não há transmissão de informações para servidores externos.
+                As "sequências de DNA" utilizadas são fictícias e servem apenas para simular o processo de bioinformática de forma lúdica.
+                Acreditamos que a privacidade é fundamental, especialmente em ferramentas de aprendizado.
+            </p>
+            <button id="modal-understood-btn" class="btn btn-primary mt-6 w-full">Entendi!</button>
+        </div>
+    </div>
+
     <script>
-        // Data for species - simplified for demonstration
+        // Data for species - comprehensive for demonstration
         const speciesData = {
             "ambienteMarinho": [
                 {
@@ -721,7 +784,7 @@
                     image: "https://placehold.co/200x200/A5D6A7/000000?text=Macaco+Aranha"
                 },
                 {
-                    id: "tucano1", sequence: "TGGCTAGTCGAT", name: "Tucano-de-bico-arco-íris", scientificName: "Ramphastos sulfuratus",
+                    id: "tucano1", sequence: "CATGCATGCCCG", name: "Tucano-de-bico-arco-íris", scientificName: "Ramphastos sulfuratus",
                     description: "Uma ave colorida com um bico grande e vibrante, habitante das florestas tropicais.",
                     habitat: "Florestas tropicais e subtropicais do México ao norte da Colômbia.",
                     geneticFeatures: "Seu genoma é estudado por seus genes de coloração e adaptações dietéticas (frutos).",
@@ -730,7 +793,7 @@
                     image: "https://placehold.co/200x200/A5D6A7/000000?text=Tucano"
                 },
                 {
-                    id: "arara1", sequence: "ACTGGCTAGCTA", name: "Arara-azul", scientificName: "Anodorhynchus hyacinthinus",
+                    id: "arara1", sequence: "CATGCATGCCGT", name: "Arara-azul", scientificName: "Anodorhynchus hyacinthinus",
                     description: "A maior arara do mundo, conhecida por sua plumagem azul-cobalto brilhante e seu bico poderoso.",
                     habitat: "Florestas úmidas, savanas e áreas abertas com palmeiras, principalmente no Pantanal.",
                     geneticFeatures: "Seu genoma oferece insights sobre sua longevidade, inteligência e dieta especializada (cocos de palmeira).",
@@ -790,7 +853,7 @@
                     geneticFeatures: "Seu genoma revela genes relacionados à visão de alta acuidade e força muscular para voo e caça.",
                     taxonomy: { kingdom: "Animalia", phylum: "Chordata", class: "Aves", order: "Accipitriformes", family: "Accipitridae", genus: "Aquila", species: "A. chrysaetos" },
                     curiosity: "É capaz de ver uma lebre a mais de 3 km de distância e pode voar em altitudes muito elevadas.",
-                    image: "https://placehold.co/200x200/A5D6A7/000000?text=Aguia+Real"
+                    image: "Images/Animals/Floresta/ovelha.png"
                 }
             ]
         };
@@ -798,6 +861,7 @@
         let currentScreen = '';
         let currentSequence = '';
         let identifiedAnimal = null;
+        let identifiedEnvironment = null; // Store the identified animal's environment
 
         const screens = {
             home: document.getElementById('screen-home'),
@@ -848,13 +912,36 @@
             for (const env in speciesData) {
                 const animal = speciesData[env].find(a => a.sequence === sequence);
                 if (animal) {
+                    identifiedEnvironment = env; // Store the environment
                     return animal;
                 }
             }
             return null; // No animal found with this sequence
         }
 
+        // Simple sequence similarity calculation (placeholder for actual bioinformatics)
+        function calculateSimilarity(seq1, seq2) {
+            if (seq1.length !== seq2.length) return 0;
+            let matches = 0;
+            for (let i = 0; i < seq1.length; i++) {
+                if (seq1[i] === seq2[i]) {
+                    matches++;
+                }
+            }
+            return (matches / seq1.length) * 100;
+        }
+
+
         // --- Screen Logic ---
+
+        // Make header logo clickable to go to home and clear URL
+        document.getElementById('header-logo').addEventListener('click', () => {
+            currentSequence = '';
+            identifiedAnimal = null;
+            identifiedEnvironment = null;
+            window.history.pushState({}, document.title, window.location.pathname); // Clear URL params
+            showScreen('home');
+        });
 
         // Screen: Home (Coleta)
         document.querySelectorAll('.card').forEach(card => {
@@ -869,13 +956,19 @@
             });
         });
 
+        // Back button on Scan QR screen
+        document.getElementById('btn-back-to-home').addEventListener('click', () => {
+            showScreen('home');
+        });
+
+
         // Screen: Sequence Display
         function startSequenceDisplay(sequence) {
             currentSequence = sequence; // Store the sequence globally
             document.getElementById('display-sequence').textContent = formatSequence(sequence);
             const progressBar = document.getElementById('sequence-display-progress');
             const timerText = document.getElementById('sequence-display-timer-text');
-            const duration = 5; // seconds
+            const duration = 20; // seconds
             let timeLeft = duration;
             progressBar.style.width = '0%';
             timerText.textContent = `Tempo restante: ${timeLeft} segundos`;
@@ -894,7 +987,7 @@
                     showScreen('sequencing');
                     startSequencingProcess(); // Start the sequencing animation
                 }
-            }, 100);
+            }, 200);
         }
 
         // Screen: Sequencing the DNA
@@ -912,7 +1005,7 @@
                     clearInterval(interval);
                     nextButton.classList.remove('hidden'); // Show button when complete
                 }
-            }, 50); // Adjust interval for desired speed
+            }, 200); // Adjust interval for desired speed
 
             nextButton.onclick = () => {
                 showScreen('genomeAssembly');
@@ -923,10 +1016,11 @@
         // Screen: Genome Assembly (Puzzle)
         let originalSequenceBlocks = [];
         let assembledBlocks = [];
+        let sequenceDisplayTimeout = null; // To clear timeout if needed
 
         function setupGenomeAssemblyPuzzle(sequence) {
             const sequenceDiv = document.getElementById('original-sequence-display');
-            sequenceDiv.textContent = formatSequence(sequence);
+            sequenceDiv.textContent = formatSequence(sequence); // Still set for when it's revealed
 
             originalSequenceBlocks = sequence.match(/.{1,3}/g); // Break into 3-char blocks
             const shuffledBlocks = shuffleArray([...originalSequenceBlocks]); // Copy and shuffle
@@ -985,6 +1079,22 @@
             document.getElementById('btn-check-assembly').onclick = checkGenomeAssembly;
             document.getElementById('btn-assembly-next').classList.add('hidden');
             document.getElementById('assembly-message').textContent = '';
+
+            // Logic for "Consultar Sequência" button
+            const showSequenceBtn = document.getElementById('btn-show-sequence');
+            showSequenceBtn.onclick = () => {
+                const seqDisplay = document.getElementById('original-sequence-display');
+                seqDisplay.classList.remove('hidden');
+                showSequenceBtn.disabled = true; // Disable button while sequence is visible
+
+                if (sequenceDisplayTimeout) {
+                    clearTimeout(sequenceDisplayTimeout);
+                }
+                sequenceDisplayTimeout = setTimeout(() => {
+                    seqDisplay.classList.add('hidden');
+                    showSequenceBtn.disabled = false; // Re-enable button
+                }, 3000); // 3 seconds
+            };
         }
 
         function checkGenomeAssembly() {
@@ -1019,9 +1129,9 @@
                 // Provide feedback on incorrect blocks (simple, based on position)
                 const targetBlocks = targetArea.querySelectorAll('.dna-block');
                 for (let i = 0; i < assembledBlocks.length; i++) {
-                    if (assembledBlocks[i] !== originalSequenceBlocks[i]) {
+                    if (originalSequenceBlocks[i] && assembledBlocks[i] !== originalSequenceBlocks[i]) {
                         targetBlocks[i].classList.add('incorrect');
-                    } else {
+                    } else if (originalSequenceBlocks[i]) {
                         targetBlocks[i].classList.add('correct');
                     }
                 }
@@ -1030,54 +1140,45 @@
 
         document.getElementById('btn-assembly-next').onclick = () => {
             showScreen('databaseQuery');
-            setupDatabaseQuery(currentSequence);
+            startDatabaseQueryProcess(); // Start the database query automatically
         };
 
-        // Screen: Database Query
-        function setupDatabaseQuery(sequence) {
-            document.getElementById('dna-sequence-input').value = formatSequence(sequence);
+        // Screen: Database Query - Modified for automatic processing
+        function startDatabaseQueryProcess() {
             const dbStatusText = document.getElementById('db-status-text');
             const dbProcessingArea = document.getElementById('db-processing-area');
             const nextButton = document.getElementById('btn-db-next');
 
-            dbStatusText.textContent = 'Aguardando entrada de sequência para iniciar a busca...';
-            dbProcessingArea.classList.remove('bg-green-50', 'bg-red-50');
-            dbProcessingArea.classList.add('bg-gray-50');
+            dbStatusText.textContent = 'Processando dados e comparando com registros no banco...';
+            dbProcessingArea.classList.remove('bg-green-50', 'bg-red-50', 'bg-gray-50');
+            dbProcessingArea.innerHTML = `
+                <svg class="animate-spin h-10 w-10 text-green-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-lg text-gray-700">Buscando no banco de dados genômico...</p>
+            `;
             nextButton.classList.add('hidden');
 
-            // Simulate search button click
-            document.getElementById('btn-search-db').onclick = () => {
-                dbStatusText.textContent = 'Processando dados e comparando com registros no banco...';
-                dbProcessingArea.innerHTML = `
-                    <svg class="animate-spin h-10 w-10 text-green-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p class="text-lg text-gray-700">Buscando no banco de dados genômico...</p>
-                `;
-
-                // Simulate network request/processing time
-                setTimeout(() => {
-                    identifiedAnimal = findAnimalBySequence(currentSequence);
-                    if (identifiedAnimal) {
-                        dbProcessingArea.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle text-green-500 mb-4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-                            <p class="text-lg text-green-700">Sequência encontrada! Pronto para o alinhamento.</p>
-                        `;
-                        dbProcessingArea.classList.remove('bg-gray-50');
-                        dbProcessingArea.classList.add('bg-green-50');
-                        nextButton.classList.remove('hidden');
-                    } else {
-                        dbProcessingArea.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle text-red-500 mb-4"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                            <p class="text-lg text-red-700">Sequência não encontrada em nosso banco. Tente outra!</p>
-                        `;
-                        dbProcessingArea.classList.remove('bg-gray-50');
-                        dbProcessingArea.classList.add('bg-red-50');
-                        nextButton.classList.add('hidden'); // Ensure button is hidden if not found
-                    }
-                }, 3000); // Simulate 3 seconds of processing
-            };
+            // Simulate network request/processing time
+            setTimeout(() => {
+                identifiedAnimal = findAnimalBySequence(currentSequence);
+                if (identifiedAnimal) {
+                    dbProcessingArea.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle text-green-500 mb-4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        <p class="text-lg text-green-700">Sequência encontrada! Pronto para o alinhamento.</p>
+                    `;
+                    dbProcessingArea.classList.add('bg-green-50');
+                    nextButton.classList.remove('hidden');
+                } else {
+                    dbProcessingArea.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle text-red-500 mb-4"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                        <p class="text-lg text-red-700">Sequência não encontrada em nosso banco. Tente outra!</p>
+                    `;
+                    dbProcessingArea.classList.add('bg-red-50');
+                    nextButton.classList.add('hidden'); // Ensure button is hidden if not found
+                }
+            }, 3000); // Simulate 3 seconds of processing
         }
 
         document.getElementById('btn-db-next').onclick = () => {
@@ -1085,41 +1186,53 @@
             setupGeneticAlignment(identifiedAnimal);
         };
 
-        // Screen: Genetic Alignment
+        // Screen: Genetic Alignment - Modified for environment-specific similarity
         function setupGeneticAlignment(animal) {
             const visualizationArea = document.getElementById('alignment-visualization');
             const summaryText = document.getElementById('alignment-summary');
             visualizationArea.innerHTML = '';
             summaryText.textContent = '';
 
-            if (!animal) {
-                summaryText.textContent = 'Nenhum animal identificado para alinhamento.';
+            if (!animal || !identifiedEnvironment) {
+                summaryText.textContent = 'Nenhum animal identificado ou ambiente selecionado para alinhamento.';
                 return;
             }
 
-            // Simulate similar species and their similarity percentage
-            const similarSpecies = [
-                { name: animal.name, similarity: 100, isUserAnimal: true },
-                { name: 'Parente Próximo A', similarity: Math.max(90, animal.similarity - 5) },
-                { name: 'Parente Próximo B', similarity: Math.max(80, animal.similarity - 10) },
-                { name: 'Parente Distante C', similarity: Math.max(60, animal.similarity - 20) }
-            ];
+            const animalsInSameEnvironment = speciesData[identifiedEnvironment];
+            let similarSpecies = [];
 
-            // Filter out exact duplicates if the identified animal's name is too generic
-            // And ensure names are unique for the visualization
-            let uniqueSimilarSpecies = [];
-            let namesUsed = new Set();
-            similarSpecies.forEach(s => {
-                if (!namesUsed.has(s.name)) {
-                    uniqueSimilarSpecies.push(s);
-                    namesUsed.add(s.name);
-                } else if (s.isUserAnimal) { // Ensure the actual identified animal is always included
-                     uniqueSimilarSpecies.unshift(s); // Put user animal first
+            // Add the identified animal itself
+            similarSpecies.push({
+                name: animal.name,
+                similarity: 100,
+                isUserAnimal: true,
+                sequence: animal.sequence
+            });
+
+            // Calculate similarity with other animals in the same environment
+            animalsInSameEnvironment.forEach(otherAnimal => {
+                if (otherAnimal.id !== animal.id) { // Don't compare with itself again
+                    const similarity = calculateSimilarity(animal.sequence, otherAnimal.sequence);
+                    // Ensure a plausible range for similarity for educational purposes
+                    const displayedSimilarity = Math.max(50, Math.round(similarity + (Math.random() * 20 - 10))); // Add some randomness for variety
+                    similarSpecies.push({
+                        name: otherAnimal.name,
+                        similarity: displayedSimilarity,
+                        isUserAnimal: false,
+                        sequence: otherAnimal.sequence
+                    });
                 }
             });
 
+            // Sort by similarity descending
+            similarSpecies.sort((a, b) => b.similarity - a.similarity);
 
-            uniqueSimilarSpecies.forEach(s => {
+            // Limit to top N similar species for visualization if too many
+            const displayLimit = 5; // Adjust as needed
+            similarSpecies = similarSpecies.slice(0, displayLimit);
+
+
+            similarSpecies.forEach(s => {
                 const barContainer = document.createElement('div');
                 barContainer.classList.add('flex', 'items-center', 'mb-2');
                 const nameSpan = document.createElement('span');
@@ -1138,13 +1251,13 @@
 
                 const percentageSpan = document.createElement('span');
                 percentageSpan.classList.add('ml-4', 'text-gray-700', 'font-bold', 'w-12');
-                percentageSpan.textContent = `${s.similarity}%`;
+                percentageSpan.textContent = `${s.similarity.toFixed(0)}%`; // Display as integer percentage
                 barContainer.appendChild(percentageSpan);
 
                 visualizationArea.appendChild(barContainer);
             });
 
-            summaryText.textContent = `O sistema encontrou que sua sequência é ${animal.similarity || 100}% similar à espécie ${animal.name}, indicando um forte parentesco genético.`;
+            summaryText.textContent = `O sistema encontrou que sua sequência é ${animal.similarity || 100}% similar à espécie ${animal.name}, indicando um forte parentesco genético. Explore outras similaridades abaixo!`;
         }
 
         document.getElementById('btn-alignment-next').onclick = () => {
@@ -1178,9 +1291,37 @@
             // Reset game state and go back to QR scan screen
             currentSequence = '';
             identifiedAnimal = null;
+            identifiedEnvironment = null;
             window.history.pushState({}, document.title, window.location.pathname); // Clear URL params
             showScreen('scanQr');
         };
+
+        // Privacy Policy Modal Logic
+        const privacyModal = document.getElementById('privacy-modal');
+        const privacyLink = document.getElementById('privacy-policy-link');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalUnderstoodBtn = document.getElementById('modal-understood-btn');
+
+        privacyLink.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default link behavior
+            privacyModal.classList.remove('hidden');
+        });
+
+        modalCloseBtn.addEventListener('click', () => {
+            privacyModal.classList.add('hidden');
+        });
+
+        modalUnderstoodBtn.addEventListener('click', () => {
+            privacyModal.classList.add('hidden');
+        });
+
+        // Close modal if click outside content (optional)
+        privacyModal.addEventListener('click', (e) => {
+            if (e.target === privacyModal) {
+                privacyModal.classList.add('hidden');
+            }
+        });
+
 
         // --- Initial Load ---
         document.addEventListener('DOMContentLoaded', () => {
