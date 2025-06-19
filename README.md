@@ -1,1 +1,1 @@
-# Gib-C-Que_Bicho_e_esse
+# GiB²C - Que Bicho é esse?
